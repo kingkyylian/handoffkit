@@ -6,6 +6,7 @@ import { execa } from "execa";
 import type { DiffInfo, RepositoryInfo } from "../types.js";
 
 const UNTRACKED_PATCH_CHAR_LIMIT = 20_000;
+const IGNORED_CHANGED_PATH_PREFIXES = ["node_modules/", "dist/", "coverage/", ".git/"];
 
 export interface GitCollectOptions {
   includeDiff: boolean;
@@ -137,7 +138,7 @@ function parseChangedFiles(status: string) {
     .map((path) => (path.includes(" -> ") ? path.split(" -> ").at(-1) ?? path : path))
     .map((path) => path.replace(/^"|"$/g, ""));
 
-  return [...new Set(files)].sort();
+  return uniqueSorted(files.filter((file) => !isIgnoredChangedPath(file)));
 }
 
 function parseUntrackedFiles(status: string) {
@@ -147,6 +148,7 @@ function parseUntrackedFiles(status: string) {
     .filter((line) => line.startsWith("?? "))
     .map((line) => line.slice(3).trim())
     .map((path) => path.replace(/^"|"$/g, ""))
+    .filter((file) => !isIgnoredChangedPath(file))
     .sort();
 }
 
@@ -179,5 +181,9 @@ function joinSections(sections: string[]) {
 }
 
 function uniqueSorted(files: string[]) {
-  return [...new Set(files)].sort();
+  return [...new Set(files.filter((file) => !isIgnoredChangedPath(file)))].sort();
+}
+
+function isIgnoredChangedPath(file: string) {
+  return IGNORED_CHANGED_PATH_PREFIXES.some((prefix) => file === prefix.slice(0, -1) || file.startsWith(prefix));
 }

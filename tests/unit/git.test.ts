@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
@@ -75,6 +75,26 @@ describe("collectGitInfo", () => {
     expect(info.changedFiles).toContain("src.ts");
     expect(info.baseDiffSummary).toContain("src.ts");
     expect(info.baseDiff).toContain("export const value = 1");
+  });
+
+  it("ignores generated dependency and build directories in changed files", async () => {
+    const root = await makeTempDir();
+    await execa("git", ["init", "--initial-branch=main"], { cwd: root });
+    await mkdir(join(root, "node_modules/pkg"), { recursive: true });
+    await mkdir(join(root, "dist"), { recursive: true });
+    await mkdir(join(root, "coverage"), { recursive: true });
+    await writeFile(join(root, "node_modules/pkg/index.js"), "module.exports = {};\n");
+    await writeFile(join(root, "dist/index.js"), "console.log('built');\n");
+    await writeFile(join(root, "coverage/result.json"), "{}\n");
+    await writeFile(join(root, "src.ts"), "export const value = 1;\n");
+
+    const info = await collectGitInfo(root, { includeDiff: false, includeDiffSummary: true });
+
+    expect(info.changedFiles).toEqual(["src.ts"]);
+    expect(info.unstagedDiffSummary).toContain("src.ts");
+    expect(info.unstagedDiffSummary).not.toContain("node_modules");
+    expect(info.unstagedDiffSummary).not.toContain("dist");
+    expect(info.unstagedDiffSummary).not.toContain("coverage");
   });
 });
 
