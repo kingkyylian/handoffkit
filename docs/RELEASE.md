@@ -22,25 +22,13 @@ pnpm pack:dry-run
 npm --cache ./.npm-cache publish --dry-run --access public
 ```
 
-Create a real tarball and install it into a clean temporary repository:
+Run the packaged install smoke:
 
 ```sh
-mkdir -p /private/tmp/handoffkit-release-smoke
-npm --cache ./.npm-cache pack --pack-destination /private/tmp/handoffkit-release-smoke
-
-SMOKE_DIR="$(mktemp -d /private/tmp/handoffkit-install-smoke.XXXXXX)"
-cd "$SMOKE_DIR"
-git init --initial-branch=main
-printf '# Smoke\n' > README.md
-npm init -y
-npm --cache /private/tmp/handoffkit-npm-cache install /private/tmp/handoffkit-release-smoke/kingkyylian-handoffkit-0.1.0.tgz
-./node_modules/.bin/handoffkit pack --goal "Smoke release" --format json --no-diff
-./node_modules/.bin/handoffkit risk --format json
-./node_modules/.bin/handoffkit scan-secrets --format json
-./node_modules/.bin/handoffkit resume README.md --goal "Resume smoke" --format json
+pnpm smoke:release
 ```
 
-Confirm that `node_modules`, `dist`, and `coverage` do not appear in `changedFiles` just because the package was installed or built.
+The script packs the current package, installs it into a clean temporary git repository, runs `pack`, `risk`, `scan-secrets`, and `resume`, and fails if generated directories such as `node_modules`, `dist`, or `coverage` appear in `changedFiles`.
 
 ## Tag and Release
 

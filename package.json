@@ -58,6 +58,7 @@
     "lint": "eslint .",
     "pack:dry-run": "npm --cache ./.npm-cache pack --dry-run",
     "prepack": "pnpm build",
+    "smoke:release": "node scripts/release-smoke.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
