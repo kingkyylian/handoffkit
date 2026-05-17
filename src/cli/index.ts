@@ -6,10 +6,13 @@ import { createResumeCommand } from "./commands/resume.js";
 import { createRiskCommand } from "./commands/risk.js";
 import { createScanSecretsCommand } from "./commands/scan-secrets.js";
 import { createVerifyCommand } from "./commands/verify.js";
+import { formatCliError } from "./errors.js";
 
 const program = new Command()
   .name("handoffkit")
   .description("Create safe local handoff packets for AI-assisted coding sessions.")
+  .summary("Create local-first AI coding session handoff packets.")
+  .showHelpAfterError("(run with --help for usage)")
   .version("0.1.0");
 
 program.addCommand(createPackCommand());
@@ -21,7 +24,6 @@ program.addCommand(createResumeCommand());
 try {
   await program.parseAsync(process.argv);
 } catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`${message}\n`);
+  process.stderr.write(`${formatCliError(error)}\n`);
   process.exitCode = 1;
 }

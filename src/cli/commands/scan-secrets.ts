@@ -12,6 +12,7 @@ const ScanSecretsOptionsSchema = z.object({
 export function createScanSecretsCommand() {
   return new Command("scan-secrets")
     .description("Run optional local secret scanners and print bounded redacted results.")
+    .summary("Run optional local secret scanners.")
     .option("--format <format>", "output format: markdown or json", "markdown")
     .action(async (rawOptions) => {
       const options = ScanSecretsOptionsSchema.parse(rawOptions);

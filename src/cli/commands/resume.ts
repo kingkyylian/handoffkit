@@ -18,6 +18,7 @@ const ResumeOptionsSchema = z.object({
 export function createResumeCommand() {
   return new Command("resume")
     .description("Create a fresh handoff packet using a previous handoff as resume context.")
+    .summary("Merge a previous handoff or transcript with fresh repo state.")
     .argument("<path>", "previous handoff or transcript file")
     .option("--goal <text>", "new handoff goal", "Resume interrupted AI coding session")
     .option("--output <path>", "write output to a file instead of stdout")

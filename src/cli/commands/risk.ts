@@ -10,6 +10,7 @@ const RiskOptionsSchema = z.object({
 export function createRiskCommand() {
   return new Command("risk")
     .description("Show deterministic risk notes for the current handoff.")
+    .summary("Show deterministic risk notes from changed files.")
     .option("--format <format>", "output format: markdown or json", "markdown")
     .action(async (rawOptions) => {
       const options = RiskOptionsSchema.parse(rawOptions);

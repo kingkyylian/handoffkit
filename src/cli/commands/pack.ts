@@ -20,6 +20,7 @@ const PackCliOptionsSchema = z.object({
 export function createPackCommand() {
   return new Command("pack")
     .description("Create a safe local handoff packet for another AI assistant.")
+    .summary("Create a Markdown or JSON packet from the current git state.")
     .option("--goal <text>", "handoff goal", "Make your own goal")
     .option("--output <path>", "write output to a file instead of stdout")
     .option("--format <format>", "output format: markdown or json", "markdown")

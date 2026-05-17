@@ -3,6 +3,7 @@ import { basename } from "node:path";
 
 import { execa } from "execa";
 
+import { HandoffKitCliError } from "../cli/errors.js";
 import type { DiffInfo, RepositoryInfo } from "../types.js";
 
 const UNTRACKED_PATCH_CHAR_LIMIT = 20_000;
@@ -21,7 +22,10 @@ export async function findGitRoot(cwd: string): Promise<string> {
   });
 
   if (result.exitCode !== 0) {
-    throw new Error("HandoffKit must be run inside a git repository.");
+    throw new HandoffKitCliError([
+      "HandoffKit must be run inside a git repository.",
+      "Run this command from a git checkout, or initialize one with `git init`."
+    ].join("\n"));
   }
 
   return result.stdout.trimEnd();

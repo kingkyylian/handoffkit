@@ -5,9 +5,18 @@ import { basename, join } from "node:path";
 import { execa } from "execa";
 import { describe, expect, it } from "vitest";
 
-import { collectGitInfo } from "../../src/core/git.js";
+import { collectGitInfo, findGitRoot } from "../../src/core/git.js";
 
 describe("collectGitInfo", () => {
+  it("throws a clear error outside a git repository", async () => {
+    const root = await makeTempDir();
+
+    await expect(findGitRoot(root)).rejects.toThrow([
+      "HandoffKit must be run inside a git repository.",
+      "Run this command from a git checkout, or initialize one with `git init`."
+    ].join("\n"));
+  });
+
   it("detects branch, status, and changed files in a git repository", async () => {
     const root = await makeTempDir();
     await execa("git", ["init", "--initial-branch=main"], { cwd: root });

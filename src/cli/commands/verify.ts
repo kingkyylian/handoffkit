@@ -13,6 +13,7 @@ const VerifyOptionsSchema = z.object({
 export function createVerifyCommand() {
   return new Command("verify")
     .description("Run safe local verification scripts.")
+    .summary("Run safe detected verification scripts.")
     .option("--format <format>", "output format: markdown or json", "markdown")
     .action(async (rawOptions) => {
       const options = VerifyOptionsSchema.parse(rawOptions);
