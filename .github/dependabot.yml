@@ -7,8 +7,18 @@ updates:
     groups:
       development-dependencies:
         dependency-type: development
+        update-types:
+          - minor
+          - patch
       runtime-dependencies:
         dependency-type: production
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: github-actions
     directory: /
