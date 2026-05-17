@@ -48,7 +48,8 @@
     "ROADMAP.md",
     "SECURITY.md",
     "CONTRIBUTING.md",
-    "CODE_OF_CONDUCT.md"
+    "CODE_OF_CONDUCT.md",
+    "docs/RELEASE.md"
   ],
   "scripts": {
     "build": "tsup",

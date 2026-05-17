@@ -214,7 +214,9 @@ pnpm pack:dry-run
 
 ## Release
 
-Releases are published manually from GitHub Actions. Update `CHANGELOG.md`, bump `package.json`, push the commit, then run the `Release` workflow for the selected ref. The workflow builds, tests, and publishes to npm with provenance.
+Releases are manual and should happen only after CI, package dry-run, and install smoke tests pass. The preferred path is the GitHub `Release` workflow with an `NPM_TOKEN` repository secret so npm provenance is attached to the published package.
+
+See [docs/RELEASE.md](docs/RELEASE.md) for the release checklist.
 
 ## Security Model
 

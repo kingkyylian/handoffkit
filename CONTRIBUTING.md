@@ -7,6 +7,7 @@ Thanks for working on HandoffKit.
 ```sh
 pnpm install
 pnpm check
+pnpm pack:dry-run
 ```
 
 Node.js 22 or newer is required.
@@ -21,8 +22,6 @@ Node.js 22 or newer is required.
 
 ## Pull Request Checklist
 
-- `pnpm typecheck`
-- `pnpm lint`
-- `pnpm test`
-- `pnpm build`
+- `pnpm check`
+- `pnpm pack:dry-run`
 - Manual smoke test: `pnpm dev pack --goal "Make your own goal"`

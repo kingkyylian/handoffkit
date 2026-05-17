@@ -13,4 +13,5 @@
 - Added `verify`, `risk`, and `resume` commands.
 - Added deterministic risk notes.
 - Added optional `gitleaks` and `secretlint` availability metadata and bounded redacted scan results.
+- Added release checklist documentation and CI package dry-run validation.
 - Added unit and integration tests.
