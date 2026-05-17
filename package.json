@@ -1,7 +1,7 @@
 {
   "name": "@kingkyylian/handoffkit",
   "version": "0.1.0",
-  "description": "Local-first CLI that turns messy AI-assisted coding sessions into safe handoff packets.",
+  "description": "Clean handoff packets for interrupted AI coding sessions.",
   "type": "module",
   "license": "MIT",
   "author": "Kyylian",
@@ -14,6 +14,8 @@
     "cursor",
     "gemini",
     "handoff",
+    "resume",
+    "session-handoff",
     "local-first",
     "typescript"
   ],
@@ -42,6 +44,7 @@
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
+    "ROADMAP.md",
     "SECURITY.md",
     "CONTRIBUTING.md",
     "CODE_OF_CONDUCT.md"

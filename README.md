@@ -5,13 +5,15 @@
 [![Node](https://img.shields.io/badge/node-%3E%3D22-43853d.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-HandoffKit turns messy AI-assisted coding work into a clean, safe context packet you can paste into Codex, Claude Code, Cursor, Gemini, ChatGPT, or another agent.
+HandoffKit is the clean handoff packet for interrupted AI coding sessions.
 
-It is a local-first TypeScript CLI. It inspects the current git repository, summarizes the working state, detects agent instruction files, finds package verification scripts, redacts likely secrets, and prints a compact Markdown handoff by default. It does not call any LLM API.
+It turns messy AI-assisted coding work into a safe resume packet you can paste into Codex, Claude Code, Cursor, Gemini, ChatGPT, or another agent. It is a local-first TypeScript CLI: it inspects the current git repository, summarizes the live branch state, detects agent instruction files, finds package verification scripts, redacts likely secrets, and prints compact Markdown by default. It does not call any LLM API.
 
 ## Why It Exists
 
-AI coding sessions often leave important context spread across terminal output, git status, diffs, TODOs, and repo-specific instruction files. Pasting all of that manually is noisy and risky. HandoffKit creates a deterministic handoff packet with the pieces another assistant needs first:
+AI coding sessions get interrupted: context windows fill up, tools change, laptops sleep, a model gets stuck, or work needs to move from Claude Code to Codex or Cursor. The hard part is not feeding an entire repo to an agent. The hard part is explaining what happened on this branch and what the next agent should do.
+
+HandoffKit creates a deterministic handoff packet with the pieces another assistant needs first:
 
 - current branch and git status
 - recent commits
@@ -21,11 +23,31 @@ AI coding sessions often leave important context spread across terminal output, 
 - package manager and common verification scripts from `package.json`
 - best-effort redaction for likely secrets
 
-## HandoffKit vs. AgentFit-Style Repo Instruction Tools
+## Positioning
+
+HandoffKit is not a repo ingestion tool. It is not trying to replace Repomix, Gitingest, or long-lived repo instruction tools.
+
+Its job is narrower: capture the live state of an interrupted AI coding session so another agent can resume without guessing.
+
+## HandoffKit vs. Repo Instruction Tools
 
 Repo instruction tools such as AgentFit help shape reusable project guidance for AI agents. HandoffKit has a different job: it captures the live state of a coding session right now.
 
 Use repo instruction tools to maintain durable agent rules. Use HandoffKit when you need to hand off an in-progress branch, debugging session, or partially completed change to another assistant without pasting raw diffs and secrets by hand.
+
+## Current MVP
+
+The first release focuses on the minimum useful handoff:
+
+- local git state
+- changed files
+- recent commits
+- diff summaries and optional patches
+- agent instruction file previews
+- package verification scripts
+- best-effort secret redaction
+
+It is useful today, but the goal is to become more than a prettier `git status`. See [ROADMAP.md](ROADMAP.md) for the next features that should make HandoffKit harder to replace with a manual paste.
 
 ## Install
 
