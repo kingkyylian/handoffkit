@@ -2,6 +2,9 @@
 import { Command } from "commander";
 
 import { createPackCommand } from "./commands/pack.js";
+import { createResumeCommand } from "./commands/resume.js";
+import { createRiskCommand } from "./commands/risk.js";
+import { createVerifyCommand } from "./commands/verify.js";
 
 const program = new Command()
   .name("handoffkit")
@@ -9,6 +12,9 @@ const program = new Command()
   .version("0.1.0");
 
 program.addCommand(createPackCommand());
+program.addCommand(createVerifyCommand());
+program.addCommand(createRiskCommand());
+program.addCommand(createResumeCommand());
 
 try {
   await program.parseAsync(process.argv);

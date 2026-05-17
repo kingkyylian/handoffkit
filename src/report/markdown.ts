@@ -2,7 +2,7 @@ import type { HandoffReport, PackageInfo } from "../types.js";
 
 export function renderMarkdownReport(report: HandoffReport): string {
   const lines: string[] = [
-    "# Handoff Packet",
+    `# ${titleForTarget(report.target)}`,
     "",
     "## Goal",
     report.goal,
@@ -21,6 +21,7 @@ export function renderMarkdownReport(report: HandoffReport): string {
     "## Changed Files",
     listOrNone(report.repository.changedFiles.map((file) => `- \`${file}\``)),
     "",
+    ...renderBaseDiffSummary(report),
     "## Diff Summary",
     "### Staged",
     codeBlock(report.repository.stagedDiffSummary || "No staged diff."),
@@ -34,6 +35,10 @@ export function renderMarkdownReport(report: HandoffReport): string {
     "## Package",
     renderPackage(report.packageInfo),
     "",
+    ...renderResumeSource(report),
+    ...renderVerification(report),
+    ...renderRisk(report),
+    ...renderSecretScanning(report),
     "## Next Agent Notes",
     "- This packet was generated from local git and filesystem state.",
     "- Likely secrets were redacted from generated output.",
@@ -54,7 +59,40 @@ export function renderMarkdownReport(report: HandoffReport): string {
     );
   }
 
+  if (report.repository.includeDiff && report.repository.baseDiff) {
+    lines.splice(
+      lines.indexOf("## Included Diff"),
+      0,
+      `## Included Branch Delta Since \`${report.repository.baseRef}\``,
+      codeBlock(report.repository.baseDiff),
+      ""
+    );
+  }
+
   return `${lines.join("\n")}\n`;
+}
+
+function titleForTarget(target = "generic") {
+  const labels: Record<string, string> = {
+    generic: "Handoff Packet",
+    codex: "Codex Handoff Packet",
+    claude: "Claude Handoff Packet",
+    cursor: "Cursor Handoff Packet"
+  };
+
+  return labels[target] ?? "Handoff Packet";
+}
+
+function renderBaseDiffSummary(report: HandoffReport) {
+  if (!report.repository.baseRef) {
+    return [];
+  }
+
+  return [
+    `## Branch Delta Since \`${report.repository.baseRef}\``,
+    codeBlock(report.repository.baseDiffSummary || "No committed branch delta detected."),
+    ""
+  ];
 }
 
 function renderPackage(packageInfo: PackageInfo | undefined) {
@@ -86,6 +124,59 @@ function renderInstructionFiles(instructionFiles: HandoffReport["instructionFile
   return instructionFiles
     .map((file) => [`- \`${file.path}\` (${file.kind})`, codeBlock(file.preview || "No preview available.")].join("\n"))
     .join("\n\n");
+}
+
+function renderResumeSource(report: HandoffReport) {
+  if (!report.resumeSource) {
+    return [];
+  }
+
+  return ["## Resume Source", `- Source: \`${report.resumeSource.path}\``, codeBlock(report.resumeSource.preview), ""];
+}
+
+function renderVerification(report: HandoffReport) {
+  if (!report.verification) {
+    return [];
+  }
+
+  return [
+    "## Verification",
+    report.verification.commands.length > 0
+      ? report.verification.commands
+          .map((command) =>
+            [`- \`${command.command}\` exited ${command.exitCode} in ${command.durationMs}ms`, codeBlock(command.output || "No output.")]
+              .join("\n")
+          )
+          .join("\n\n")
+      : "No safe verification scripts detected.",
+    ""
+  ];
+}
+
+function renderRisk(report: HandoffReport) {
+  if (!report.risk) {
+    return [];
+  }
+
+  return [
+    "## Risk Notes",
+    report.risk.notes.map((note) => `- **${note.severity}**: ${note.title} - ${note.detail}`).join("\n"),
+    ""
+  ];
+}
+
+function renderSecretScanning(report: HandoffReport) {
+  if (!report.secretScanning) {
+    return [];
+  }
+
+  return [
+    "## Secret Scanner Availability",
+    report.secretScanning.scanners
+      .map((scanner) => `- ${scanner.name}: ${scanner.available ? "available" : "not found"}`)
+      .join("\n"),
+    ""
+  ];
 }
 
 function codeBlock(text: string) {

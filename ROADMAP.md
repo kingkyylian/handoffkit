@@ -4,7 +4,9 @@ HandoffKit is focused on one niche: clean handoff and resume packets for interru
 
 It should not become a generic repo-to-context dumper. Existing tools already cover that space well. The roadmap below prioritizes features that make handoff quality better than a manual paste.
 
-## Near Term
+## Implemented MVP Surface
+
+These are implemented as local-first deterministic features:
 
 ### `handoffkit pack --since <ref>`
 
@@ -21,7 +23,7 @@ Expected behavior:
 - reduce noise from unrelated working tree history
 - keep deterministic local output
 
-### `handoffkit verify`
+### `handoffkit pack --verify` and `handoffkit verify`
 
 Run detected verification commands and include the result in the packet:
 
@@ -35,7 +37,7 @@ Expected behavior:
 - choose safe scripts such as `typecheck`, `lint`, `test`, `build`
 - capture command, exit code, duration, and tail output
 - avoid running arbitrary destructive scripts
-- optionally write a verification block that `pack` can include
+- include verification in a handoff packet when `pack --verify` is used
 
 ### Agent-Specific Output
 
@@ -52,8 +54,6 @@ Expected behavior:
 - keep the same source facts
 - adjust section order, headings, and action prompts for the target tool
 - avoid tool-specific claims that cannot be verified locally
-
-## Mid Term
 
 ### `handoffkit risk`
 
@@ -85,13 +85,21 @@ Expected behavior:
 
 ### Stronger Secret Scanning
 
-Keep regex redaction as the default, then add optional integrations:
+Regex redaction remains the default. HandoffKit also detects whether optional local scanners are available:
 
 - `secretlint`
 - `gitleaks`
 - provider-specific token patterns
 
-These must remain local-first and opt-in when they require extra binaries.
+Scanner execution remains future work; detection is currently included as handoff metadata.
+
+## Next Up
+
+- Execute optional `gitleaks` or `secretlint` scans and include bounded results.
+- Make `risk` rules richer by mapping changed files to common failure modes.
+- Improve `--for` formats beyond headings, with agent-specific action prompts.
+- Add transcript parsers for Claude Code, Codex, Cursor, and Gemini exports.
+- Add a stable `.handoffkit` cache format for verification and resume artifacts.
 
 ## Non-Goals
 

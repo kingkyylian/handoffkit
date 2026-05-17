@@ -1,23 +1,19 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
-
 import { Command } from "commander";
 import { z } from "zod";
 
-import { applyMarkdownBudget, estimateTokens } from "../../core/budget.js";
 import { collectHandoffReport } from "../../core/collect.js";
-import { redactText } from "../../core/redact.js";
-import { renderJsonReport } from "../../report/json.js";
-import { renderMarkdownReport } from "../../report/markdown.js";
-import type { OutputFormat } from "../../types.js";
+import { writeRenderedReport } from "../output.js";
 
 const PackCliOptionsSchema = z.object({
   goal: z.string().trim().min(1).default("Make your own goal"),
   output: z.string().optional(),
   format: z.enum(["markdown", "json"]).default("markdown"),
+  for: z.enum(["generic", "codex", "claude", "cursor"]).default("generic"),
   budget: z.number().int().positive().default(4000),
   includeDiff: z.boolean().default(false),
-  diff: z.boolean().default(true)
+  diff: z.boolean().default(true),
+  since: z.string().trim().min(1).optional(),
+  verify: z.boolean().default(false)
 });
 
 export function createPackCommand() {
@@ -26,7 +22,10 @@ export function createPackCommand() {
     .option("--goal <text>", "handoff goal", "Make your own goal")
     .option("--output <path>", "write output to a file instead of stdout")
     .option("--format <format>", "output format: markdown or json", "markdown")
+    .option("--for <agent>", "target output: generic, codex, claude, or cursor", "generic")
     .option("--budget <tokens>", "rough output token budget", parseBudget, 4000)
+    .option("--since <ref>", "focus committed branch delta on a base ref")
+    .option("--verify", "run safe verification scripts and include results")
     .option("--include-diff", "include full staged and unstaged patches", false)
     .option("--no-diff", "omit diff summaries and full patches")
     .action(async (rawOptions) => {
@@ -36,43 +35,16 @@ export function createPackCommand() {
         cwd: process.cwd(),
         ...(options.output ? { output: options.output } : {}),
         format: options.format,
+        target: options.for,
         budget: options.budget,
         includeDiff: options.includeDiff,
-        includeDiffSummary: options.diff
+        includeDiffSummary: options.diff,
+        ...(options.since ? { since: options.since } : {}),
+        includeVerification: options.verify
       });
 
-      const output = renderOutput(report, options.format, options.budget);
-      const redactedOutput = redactText(output);
-
-      if (options.output) {
-        const outputPath = resolve(process.cwd(), options.output);
-        await mkdir(dirname(outputPath), { recursive: true });
-        await writeFile(outputPath, redactedOutput, "utf8");
-        process.stderr.write(`Wrote handoff packet to ${outputPath}\n`);
-        return;
-      }
-
-      process.stdout.write(redactedOutput);
+      await writeRenderedReport(report, options.format, options.budget, options.output);
     });
-}
-
-function renderOutput(report: Awaited<ReturnType<typeof collectHandoffReport>>, format: OutputFormat, budget: number) {
-  if (format === "json") {
-    const rendered = renderJsonReport(report);
-    report.budget.estimatedTokens = estimateTokens(rendered);
-    return renderJsonReport(report);
-  }
-
-  const firstRender = renderMarkdownReport(report);
-  const budgeted = applyMarkdownBudget(firstRender, budget);
-  report.budget.estimatedTokens = budgeted.estimatedTokens;
-  report.budget.wasTrimmed = budgeted.wasTrimmed;
-
-  if (budgeted.wasTrimmed) {
-    return budgeted.text;
-  }
-
-  return renderMarkdownReport(report);
 }
 
 function parseOptions(rawOptions: unknown) {

@@ -1,32 +1,45 @@
 export type OutputFormat = "markdown" | "json";
+export type AgentTarget = "generic" | "codex" | "claude" | "cursor";
 
 export interface PackOptions {
   goal: string;
   cwd: string;
   output?: string;
   format: OutputFormat;
+  target: AgentTarget;
   budget: number;
   includeDiff: boolean;
   includeDiffSummary: boolean;
+  since?: string;
+  includeVerification: boolean;
+  resumeSource?: ResumeSource;
 }
 
 export interface HandoffReport {
   goal: string;
+  target: AgentTarget;
   repository: RepositoryInfo;
   instructionFiles: InstructionFile[];
   packageInfo?: PackageInfo;
+  resumeSource?: ResumeSource;
+  verification?: VerificationReport;
+  risk?: RiskReport;
+  secretScanning?: SecretScannerReport;
   budget: BudgetInfo;
 }
 
 export interface RepositoryInfo {
   name: string;
   branch: string;
+  baseRef?: string;
   status: string;
   recentCommits: string[];
   changedFiles: string[];
+  baseDiffSummary?: string;
   stagedDiffSummary: string;
   unstagedDiffSummary: string;
   includeDiff: boolean;
+  baseDiff?: string;
   diff?: DiffInfo;
 }
 
@@ -56,4 +69,41 @@ export interface BudgetInfo {
   requestedTokens: number;
   estimatedTokens: number;
   wasTrimmed: boolean;
+}
+
+export interface ResumeSource {
+  path: string;
+  preview: string;
+}
+
+export interface VerificationReport {
+  commands: VerificationResult[];
+}
+
+export interface VerificationResult {
+  name: string;
+  command: string;
+  exitCode: number;
+  durationMs: number;
+  output: string;
+}
+
+export interface RiskReport {
+  notes: RiskNote[];
+}
+
+export interface RiskNote {
+  severity: "low" | "medium" | "high";
+  title: string;
+  detail: string;
+}
+
+export interface SecretScannerReport {
+  scanners: SecretScannerStatus[];
+}
+
+export interface SecretScannerStatus {
+  name: "gitleaks" | "secretlint";
+  available: boolean;
+  version?: string;
 }

@@ -10,6 +10,7 @@ const UNTRACKED_PATCH_CHAR_LIMIT = 20_000;
 export interface GitCollectOptions {
   includeDiff: boolean;
   includeDiffSummary: boolean;
+  since?: string;
 }
 
 export async function findGitRoot(cwd: string): Promise<string> {
@@ -26,17 +27,18 @@ export async function findGitRoot(cwd: string): Promise<string> {
 }
 
 export async function collectGitInfo(root: string, options: GitCollectOptions): Promise<RepositoryInfo> {
-  const [branch, status, porcelainStatus, recentCommits, stagedDiffSummary, trackedUnstagedDiffSummary] =
+  const [branch, status, porcelainStatus, recentCommits, stagedDiffSummary, trackedUnstagedDiffSummary, baseInfo] =
     await Promise.all([
       currentBranch(root),
       git(root, ["status", "--short", "--branch"]),
       git(root, ["status", "--porcelain=v1", "--untracked-files=all"]),
-      recentCommitLines(root),
+      recentCommitLines(root, options.since),
       options.includeDiffSummary ? git(root, ["diff", "--cached", "--stat"]) : Promise.resolve(""),
-      options.includeDiffSummary ? git(root, ["diff", "--stat"]) : Promise.resolve("")
+      options.includeDiffSummary ? git(root, ["diff", "--stat"]) : Promise.resolve(""),
+      options.since ? collectBaseInfo(root, options.since, options.includeDiffSummary, options.includeDiff) : Promise.resolve(undefined)
     ]);
 
-  const changedFiles = parseChangedFiles(porcelainStatus);
+  const changedFiles = uniqueSorted([...(baseInfo?.changedFiles ?? []), ...parseChangedFiles(porcelainStatus)]);
   const untrackedFiles = parseUntrackedFiles(porcelainStatus);
   const unstagedDiffSummary = options.includeDiffSummary
     ? joinSections([trackedUnstagedDiffSummary, renderUntrackedSummary(untrackedFiles)])
@@ -46,12 +48,15 @@ export async function collectGitInfo(root: string, options: GitCollectOptions): 
   return {
     name: basename(root),
     branch,
+    ...(options.since ? { baseRef: options.since } : {}),
     status,
     recentCommits,
     changedFiles,
+    ...(baseInfo?.summary ? { baseDiffSummary: baseInfo.summary } : {}),
     stagedDiffSummary,
     unstagedDiffSummary,
     includeDiff: options.includeDiff,
+    ...(baseInfo?.patch ? { baseDiff: baseInfo.patch } : {}),
     ...(diff ? { diff } : {})
   };
 }
@@ -67,9 +72,37 @@ async function currentBranch(root: string) {
   return commit ? `detached:${commit}` : "unknown";
 }
 
-async function recentCommitLines(root: string) {
-  const output = await git(root, ["log", "--oneline", "-n", "10"], { allowFailure: true });
+async function recentCommitLines(root: string, since?: string) {
+  const args = since ? ["log", "--oneline", "-n", "10", `${since}..HEAD`] : ["log", "--oneline", "-n", "10"];
+  const output = await git(root, args, { allowFailure: true });
   return output ? output.split("\n") : [];
+}
+
+async function collectBaseInfo(root: string, since: string, includeDiffSummary: boolean, includeDiff: boolean) {
+  await ensureRef(root, since);
+  const range = `${since}...HEAD`;
+  const [changedFiles, summary, patch] = await Promise.all([
+    git(root, ["diff", "--name-only", range], { allowFailure: true }),
+    includeDiffSummary ? git(root, ["diff", "--stat", range], { allowFailure: true }) : Promise.resolve(""),
+    includeDiff ? git(root, ["diff", "--patch", range], { allowFailure: true }) : Promise.resolve("")
+  ]);
+
+  return {
+    changedFiles: changedFiles ? changedFiles.split("\n").filter(Boolean) : [],
+    summary,
+    patch
+  };
+}
+
+async function ensureRef(root: string, ref: string) {
+  const result = await execa("git", ["rev-parse", "--verify", `${ref}^{commit}`], {
+    cwd: root,
+    reject: false
+  });
+
+  if (result.exitCode !== 0) {
+    throw new Error(`Could not resolve --since ref: ${ref}`);
+  }
 }
 
 async function collectDiff(root: string, untrackedFiles: string[]): Promise<DiffInfo> {
@@ -143,4 +176,8 @@ async function untrackedPatch(root: string, files: string[]) {
 
 function joinSections(sections: string[]) {
   return sections.filter(Boolean).join("\n\n").trim();
+}
+
+function uniqueSorted(files: string[]) {
+  return [...new Set(files)].sort();
 }

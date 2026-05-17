@@ -80,6 +80,24 @@ From inside a git repository:
 handoffkit pack --goal "Make your own goal"
 ```
 
+Focus on the branch delta since a base ref:
+
+```sh
+handoffkit pack --since main --goal "Continue this branch"
+```
+
+Run safe verification scripts and include the result:
+
+```sh
+handoffkit pack --verify --goal "Fix remaining failures"
+```
+
+Optimize the packet for a target agent:
+
+```sh
+handoffkit pack --for codex --goal "Resume implementation"
+```
+
 During development:
 
 ```sh
@@ -116,6 +134,24 @@ Set a rough Markdown token budget:
 handoffkit pack --goal "Prepare a compact handoff" --budget 3000
 ```
 
+Run verification directly:
+
+```sh
+handoffkit verify
+```
+
+Inspect deterministic risk notes:
+
+```sh
+handoffkit risk
+```
+
+Resume from a previous handoff or transcript:
+
+```sh
+handoffkit resume previous-handoff.md --goal "Continue from here"
+```
+
 ## CLI Options
 
 | Option | Description |
@@ -123,7 +159,10 @@ handoffkit pack --goal "Prepare a compact handoff" --budget 3000
 | `--goal <text>` | The handoff goal to place at the top of the packet. |
 | `--output <path>` | Write the packet to a file instead of stdout. |
 | `--format markdown\|json` | Render Markdown or JSON. Defaults to Markdown. |
+| `--for generic\|codex\|claude\|cursor` | Tune the packet heading and prompt shape for a target agent. |
 | `--budget <tokens>` | Rough Markdown token budget. Defaults to `4000`. |
+| `--since <ref>` | Focus committed branch delta on a base ref such as `main`. |
+| `--verify` | Run safe verification scripts and include results in the packet. |
 | `--include-diff` | Include full tracked patches and bounded untracked previews. |
 | `--no-diff` | Omit diff summaries and full patches. |
 
@@ -136,6 +175,9 @@ HandoffKit reads local git and filesystem metadata from the current repository:
 - untracked file names in summaries, and untracked file preview content only when `--include-diff` is used
 - compact previews of detected instruction files
 - package manager and verification scripts from the root `package.json`
+- optional verification results when `--verify` is used
+- deterministic risk notes from changed file paths
+- optional secret scanner availability for `gitleaks` and `secretlint`
 
 ## What Never Happens
 

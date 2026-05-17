@@ -56,8 +56,40 @@ describe("collectGitInfo", () => {
     expect(info.changedFiles).toContain(".gitignore");
     expect(info.changedFiles).not.toContain("gitignore");
   });
+
+  it("can focus recent commits and diff summary on a base ref", async () => {
+    const root = await makeTempDir();
+    await execa("git", ["init", "--initial-branch=main"], { cwd: root });
+    await writeFile(join(root, "README.md"), "# Demo\n");
+    await execa("git", ["add", "README.md"], { cwd: root });
+    await commit(root, "Initial commit");
+    await execa("git", ["checkout", "-b", "feature/handoff"], { cwd: root });
+    await writeFile(join(root, "src.ts"), "export const value = 1;\n");
+    await execa("git", ["add", "src.ts"], { cwd: root });
+    await commit(root, "Add feature file");
+
+    const info = await collectGitInfo(root, { includeDiff: true, includeDiffSummary: true, since: "main" });
+
+    expect(info.baseRef).toBe("main");
+    expect(info.recentCommits).toEqual([expect.stringContaining("Add feature file")]);
+    expect(info.changedFiles).toContain("src.ts");
+    expect(info.baseDiffSummary).toContain("src.ts");
+    expect(info.baseDiff).toContain("export const value = 1");
+  });
 });
 
 async function makeTempDir() {
   return mkdtemp(join(tmpdir(), "handoffkit-"));
+}
+
+async function commit(root: string, message: string) {
+  await execa("git", ["commit", "-m", message], {
+    cwd: root,
+    env: {
+      GIT_AUTHOR_NAME: "Test",
+      GIT_AUTHOR_EMAIL: "test@example.com",
+      GIT_COMMITTER_NAME: "Test",
+      GIT_COMMITTER_EMAIL: "test@example.com"
+    }
+  });
 }
