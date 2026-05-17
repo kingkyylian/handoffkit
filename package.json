@@ -5,6 +5,18 @@
   "type": "module",
   "license": "MIT",
   "author": "Kyylian",
+  "keywords": [
+    "ai",
+    "agent",
+    "cli",
+    "codex",
+    "claude",
+    "cursor",
+    "gemini",
+    "handoff",
+    "local-first",
+    "typescript"
+  ],
   "homepage": "https://github.com/kingkyylian/handoffkit#readme",
   "repository": {
     "type": "git",
@@ -30,13 +42,17 @@
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "SECURITY.md"
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
   ],
   "scripts": {
     "build": "tsup",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
     "dev": "tsup --silent && node dist/index.js",
     "lint": "eslint .",
+    "pack:dry-run": "npm --cache ./.npm-cache pack --dry-run",
+    "prepack": "pnpm build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

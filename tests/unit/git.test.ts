@@ -34,6 +34,28 @@ describe("collectGitInfo", () => {
     expect(info.diff?.unstaged).toContain("Untracked file: README.md");
     expect(info.diff?.unstaged).toContain("# Demo");
   });
+
+  it("preserves leading dots for modified hidden files", async () => {
+    const root = await makeTempDir();
+    await execa("git", ["init", "--initial-branch=main"], { cwd: root });
+    await writeFile(join(root, ".gitignore"), "dist\n");
+    await execa("git", ["add", ".gitignore"], { cwd: root });
+    await execa("git", ["commit", "-m", "Add gitignore"], {
+      cwd: root,
+      env: {
+        GIT_AUTHOR_NAME: "Test",
+        GIT_AUTHOR_EMAIL: "test@example.com",
+        GIT_COMMITTER_NAME: "Test",
+        GIT_COMMITTER_EMAIL: "test@example.com"
+      }
+    });
+    await writeFile(join(root, ".gitignore"), "dist\n.npm-cache\n");
+
+    const info = await collectGitInfo(root, { includeDiff: false, includeDiffSummary: false });
+
+    expect(info.changedFiles).toContain(".gitignore");
+    expect(info.changedFiles).not.toContain("gitignore");
+  });
 });
 
 async function makeTempDir() {

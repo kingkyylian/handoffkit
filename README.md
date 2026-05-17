@@ -1,5 +1,10 @@
 # HandoffKit
 
+[![CI](https://github.com/kingkyylian/handoffkit/actions/workflows/ci.yml/badge.svg)](https://github.com/kingkyylian/handoffkit/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@kingkyylian/handoffkit.svg)](https://www.npmjs.com/package/@kingkyylian/handoffkit)
+[![Node](https://img.shields.io/badge/node-%3E%3D22-43853d.svg)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 HandoffKit turns messy AI-assisted coding work into a clean, safe context packet you can paste into Codex, Claude Code, Cursor, Gemini, ChatGPT, or another agent.
 
 It is a local-first TypeScript CLI. It inspects the current git repository, summarizes the working state, detects agent instruction files, finds package verification scripts, redacts likely secrets, and prints a compact Markdown handoff by default. It does not call any LLM API.
@@ -23,6 +28,20 @@ Repo instruction tools such as AgentFit help shape reusable project guidance for
 Use repo instruction tools to maintain durable agent rules. Use HandoffKit when you need to hand off an in-progress branch, debugging session, or partially completed change to another assistant without pasting raw diffs and secrets by hand.
 
 ## Install
+
+Run without installing:
+
+```sh
+pnpm dlx @kingkyylian/handoffkit pack --goal "Make your own goal"
+```
+
+Or install it globally:
+
+```sh
+pnpm add -g @kingkyylian/handoffkit
+```
+
+For local development:
 
 ```sh
 pnpm install
@@ -75,6 +94,17 @@ Set a rough Markdown token budget:
 handoffkit pack --goal "Prepare a compact handoff" --budget 3000
 ```
 
+## CLI Options
+
+| Option | Description |
+| --- | --- |
+| `--goal <text>` | The handoff goal to place at the top of the packet. |
+| `--output <path>` | Write the packet to a file instead of stdout. |
+| `--format markdown\|json` | Render Markdown or JSON. Defaults to Markdown. |
+| `--budget <tokens>` | Rough Markdown token budget. Defaults to `4000`. |
+| `--include-diff` | Include full tracked patches and bounded untracked previews. |
+| `--no-diff` | Omit diff summaries and full patches. |
+
 ## What Gets Collected
 
 HandoffKit reads local git and filesystem metadata from the current repository:
@@ -101,7 +131,12 @@ pnpm lint
 pnpm test
 pnpm build
 pnpm check
+pnpm pack:dry-run
 ```
+
+## Release
+
+Releases are published manually from GitHub Actions. Update `CHANGELOG.md`, bump `package.json`, push the commit, then run the `Release` workflow for the selected ref. The workflow builds, tests, and publishes to npm with provenance.
 
 ## Security Model
 

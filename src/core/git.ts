@@ -22,7 +22,7 @@ export async function findGitRoot(cwd: string): Promise<string> {
     throw new Error("HandoffKit must be run inside a git repository.");
   }
 
-  return result.stdout.trim();
+  return result.stdout.trimEnd();
 }
 
 export async function collectGitInfo(root: string, options: GitCollectOptions): Promise<RepositoryInfo> {
@@ -100,7 +100,7 @@ function parseChangedFiles(status: string) {
     .split("\n")
     .map((line) => line.trimEnd())
     .filter(Boolean)
-    .map((line) => line.slice(3).trim())
+    .map((line) => line.slice(line[2] === " " ? 3 : 2).trim())
     .map((path) => (path.includes(" -> ") ? path.split(" -> ").at(-1) ?? path : path))
     .map((path) => path.replace(/^"|"$/g, ""));
 
