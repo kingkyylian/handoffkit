@@ -21,7 +21,8 @@ export function createRiskCommand() {
         budget: 4000,
         includeDiff: false,
         includeDiffSummary: false,
-        includeVerification: false
+        includeVerification: false,
+        scanSecrets: false
       });
 
       if (options.format === "json") {

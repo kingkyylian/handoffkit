@@ -85,17 +85,17 @@ Expected behavior:
 
 ### Stronger Secret Scanning
 
-Regex redaction remains the default. HandoffKit also detects whether optional local scanners are available:
+Regex redaction remains the default. HandoffKit detects optional local scanners and can run bounded local scans with `pack --scan-secrets` or `scan-secrets`:
 
 - `secretlint`
 - `gitleaks`
 - provider-specific token patterns
 
-Scanner execution remains future work; detection is currently included as handoff metadata.
+Scan results are bounded and redacted before rendering.
 
 ## Next Up
 
-- Execute optional `gitleaks` or `secretlint` scans and include bounded results.
+- Add scanner-specific installation guidance and config discovery.
 - Make `risk` rules richer by mapping changed files to common failure modes.
 - Improve `--for` formats beyond headings, with agent-specific action prompts.
 - Add transcript parsers for Claude Code, Codex, Cursor, and Gemini exports.

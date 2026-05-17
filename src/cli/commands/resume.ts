@@ -37,6 +37,7 @@ export function createResumeCommand() {
         includeDiff: false,
         includeDiffSummary: true,
         includeVerification: false,
+        scanSecrets: false,
         resumeSource: source
       });
 

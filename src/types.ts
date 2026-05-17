@@ -12,6 +12,7 @@ export interface PackOptions {
   includeDiffSummary: boolean;
   since?: string;
   includeVerification: boolean;
+  scanSecrets: boolean;
   resumeSource?: ResumeSource;
 }
 
@@ -100,10 +101,29 @@ export interface RiskNote {
 
 export interface SecretScannerReport {
   scanners: SecretScannerStatus[];
+  scans?: SecretScanResult[];
 }
 
 export interface SecretScannerStatus {
   name: "gitleaks" | "secretlint";
   available: boolean;
   version?: string;
+}
+
+export interface SecretScanResult {
+  name: "gitleaks" | "secretlint";
+  available: boolean;
+  ran: boolean;
+  exitCode?: number;
+  durationMs?: number;
+  findings: SecretFinding[];
+  error?: string;
+  truncated: boolean;
+}
+
+export interface SecretFinding {
+  ruleId?: string;
+  message: string;
+  file?: string;
+  line?: number;
 }

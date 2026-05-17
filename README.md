@@ -92,6 +92,12 @@ Run safe verification scripts and include the result:
 handoffkit pack --verify --goal "Fix remaining failures"
 ```
 
+Run optional local secret scanners and include bounded redacted results:
+
+```sh
+handoffkit pack --scan-secrets --goal "Review before handoff"
+```
+
 Optimize the packet for a target agent:
 
 ```sh
@@ -146,6 +152,12 @@ Inspect deterministic risk notes:
 handoffkit risk
 ```
 
+Run optional local secret scanners directly:
+
+```sh
+handoffkit scan-secrets
+```
+
 Resume from a previous handoff or transcript:
 
 ```sh
@@ -163,6 +175,7 @@ handoffkit resume previous-handoff.md --goal "Continue from here"
 | `--budget <tokens>` | Rough Markdown token budget. Defaults to `4000`. |
 | `--since <ref>` | Focus committed branch delta on a base ref such as `main`. |
 | `--verify` | Run safe verification scripts and include results in the packet. |
+| `--scan-secrets` | Run optional local secret scanners and include bounded redacted results. |
 | `--include-diff` | Include full tracked patches and bounded untracked previews. |
 | `--no-diff` | Omit diff summaries and full patches. |
 
@@ -178,6 +191,7 @@ HandoffKit reads local git and filesystem metadata from the current repository:
 - optional verification results when `--verify` is used
 - deterministic risk notes from changed file paths
 - optional secret scanner availability for `gitleaks` and `secretlint`
+- bounded, redacted secret scan results when `--scan-secrets` is used
 
 ## What Never Happens
 
@@ -205,6 +219,8 @@ Releases are published manually from GitHub Actions. Update `CHANGELOG.md`, bump
 ## Security Model
 
 HandoffKit is local-first and deterministic. It reads local git and filesystem state, renders a report, and redacts likely secrets from generated output. Redaction is best effort, so review packets before pasting them into a third-party tool.
+
+When `--scan-secrets` is used, HandoffKit runs installed local scanners only. It does not install scanners, send code to a service, or fail when `gitleaks` or `secretlint` is missing.
 
 ## License
 

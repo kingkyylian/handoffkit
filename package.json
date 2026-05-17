@@ -16,6 +16,7 @@
     "handoff",
     "resume",
     "session-handoff",
+    "secret-scanning",
     "local-first",
     "typescript"
   ],

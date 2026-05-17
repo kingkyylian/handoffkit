@@ -11,5 +11,6 @@
 - Added best-effort secret redaction.
 - Added `pack --since`, `pack --verify`, and `pack --for`.
 - Added `verify`, `risk`, and `resume` commands.
-- Added deterministic risk notes and optional secret scanner availability metadata.
+- Added deterministic risk notes.
+- Added optional `gitleaks` and `secretlint` availability metadata and bounded redacted scan results.
 - Added unit and integration tests.

@@ -171,12 +171,34 @@ function renderSecretScanning(report: HandoffReport) {
   }
 
   return [
-    "## Secret Scanner Availability",
-    report.secretScanning.scanners
-      .map((scanner) => `- ${scanner.name}: ${scanner.available ? "available" : "not found"}`)
-      .join("\n"),
+    report.secretScanning.scans ? "## Secret Scan Results" : "## Secret Scanner Availability",
+    renderSecretScannerReport(report.secretScanning),
     ""
   ];
+}
+
+function renderSecretScannerReport(secretScanning: NonNullable<HandoffReport["secretScanning"]>) {
+  if (!secretScanning.scans) {
+    return secretScanning.scanners.map((scanner) => `- ${scanner.name}: ${scanner.available ? "available" : "not found"}`).join("\n");
+  }
+
+  return secretScanning.scans
+    .map((scan) => {
+      const lines = [
+        `- ${scan.name}: ${scan.ran ? `${scan.findings.length} finding(s), exit ${scan.exitCode}` : scan.error ?? "not run"}`
+      ];
+
+      for (const finding of scan.findings) {
+        lines.push(`  - ${finding.ruleId ? `${finding.ruleId}: ` : ""}${finding.message}${finding.file ? ` (${finding.file}${finding.line ? `:${finding.line}` : ""})` : ""}`);
+      }
+
+      if (scan.truncated) {
+        lines.push("  - Additional findings were truncated.");
+      }
+
+      return lines.join("\n");
+    })
+    .join("\n");
 }
 
 function codeBlock(text: string) {

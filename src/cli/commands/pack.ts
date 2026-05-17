@@ -13,7 +13,8 @@ const PackCliOptionsSchema = z.object({
   includeDiff: z.boolean().default(false),
   diff: z.boolean().default(true),
   since: z.string().trim().min(1).optional(),
-  verify: z.boolean().default(false)
+  verify: z.boolean().default(false),
+  scanSecrets: z.boolean().default(false)
 });
 
 export function createPackCommand() {
@@ -26,6 +27,7 @@ export function createPackCommand() {
     .option("--budget <tokens>", "rough output token budget", parseBudget, 4000)
     .option("--since <ref>", "focus committed branch delta on a base ref")
     .option("--verify", "run safe verification scripts and include results")
+    .option("--scan-secrets", "run optional local secret scanners and include bounded results")
     .option("--include-diff", "include full staged and unstaged patches", false)
     .option("--no-diff", "omit diff summaries and full patches")
     .action(async (rawOptions) => {
@@ -40,7 +42,8 @@ export function createPackCommand() {
         includeDiff: options.includeDiff,
         includeDiffSummary: options.diff,
         ...(options.since ? { since: options.since } : {}),
-        includeVerification: options.verify
+        includeVerification: options.verify,
+        scanSecrets: options.scanSecrets
       });
 
       await writeRenderedReport(report, options.format, options.budget, options.output);

@@ -3,7 +3,7 @@ import { collectGitInfo, findGitRoot } from "./git.js";
 import { detectInstructionFiles } from "./instructions.js";
 import { detectPackageInfo } from "./package-json.js";
 import { analyzeRisk } from "./risk.js";
-import { detectSecretScanners } from "./scanners.js";
+import { detectSecretScanners, runSecretScanners } from "./scanners.js";
 import { runVerification } from "./verify.js";
 
 export async function collectHandoffReport(options: PackOptions): Promise<HandoffReport> {
@@ -16,7 +16,7 @@ export async function collectHandoffReport(options: PackOptions): Promise<Handof
     }),
     detectInstructionFiles(root),
     detectPackageInfo(root),
-    detectSecretScanners()
+    options.scanSecrets ? runSecretScanners(root) : detectSecretScanners()
   ]);
 
   const report: HandoffReport = {

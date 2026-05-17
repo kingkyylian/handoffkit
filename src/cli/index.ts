@@ -4,6 +4,7 @@ import { Command } from "commander";
 import { createPackCommand } from "./commands/pack.js";
 import { createResumeCommand } from "./commands/resume.js";
 import { createRiskCommand } from "./commands/risk.js";
+import { createScanSecretsCommand } from "./commands/scan-secrets.js";
 import { createVerifyCommand } from "./commands/verify.js";
 
 const program = new Command()
@@ -14,6 +15,7 @@ const program = new Command()
 program.addCommand(createPackCommand());
 program.addCommand(createVerifyCommand());
 program.addCommand(createRiskCommand());
+program.addCommand(createScanSecretsCommand());
 program.addCommand(createResumeCommand());
 
 try {

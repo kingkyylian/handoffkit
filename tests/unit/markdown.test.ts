@@ -36,7 +36,18 @@ describe("renderMarkdownReport", () => {
         notes: [{ severity: "medium", title: "Source changed without tests", detail: "Review test coverage for src/index.ts." }]
       },
       secretScanning: {
-        scanners: [{ name: "gitleaks", available: false }, { name: "secretlint", available: true }]
+        scanners: [{ name: "gitleaks", available: false }, { name: "secretlint", available: true }],
+        scans: [
+          {
+            name: "secretlint",
+            available: true,
+            ran: true,
+            exitCode: 1,
+            durationMs: 50,
+            findings: [{ ruleId: "no-dotenv", message: "dotenv secret", file: ".env", line: 1 }],
+            truncated: false
+          }
+        ]
       },
       budget: { requestedTokens: 4000, estimatedTokens: 0, wasTrimmed: false }
     };
@@ -54,6 +65,7 @@ describe("renderMarkdownReport", () => {
     expect(markdown).toContain("## Risk Notes");
     expect(markdown).toContain("Source changed without tests");
     expect(markdown).toContain("secretlint");
+    expect(markdown).toContain("dotenv secret");
     expect(markdown).toContain("- `pnpm build`");
     expect(markdown).toContain("No LLM APIs were called.");
     expect(markdown).not.toContain("undefined");
