@@ -1,4 +1,4 @@
-import type { HandoffReport, PackageInfo } from "../types.js";
+import type { HandoffReport, PackageInfo, ResumeItem, ResumeState } from "../types.js";
 
 export function renderMarkdownReport(report: HandoffReport): string {
   const lines: string[] = [
@@ -131,7 +131,34 @@ function renderResumeSource(report: HandoffReport) {
     return [];
   }
 
-  return ["## Resume Source", `- Source: \`${report.resumeSource.path}\``, codeBlock(report.resumeSource.preview), ""];
+  return [
+    "## Resume Source",
+    `- Source: \`${report.resumeSource.path}\``,
+    codeBlock(report.resumeSource.preview),
+    "",
+    ...renderResumeState(report.resumeSource.state)
+  ];
+}
+
+function renderResumeState(state: ResumeState | undefined) {
+  if (!state) {
+    return [];
+  }
+
+  return [
+    "## Resume State",
+    renderResumeItems("Completed", state.completed),
+    renderResumeItems("Remaining", state.remaining),
+    renderResumeItems("Failed Commands", state.failedCommands),
+    renderResumeItems("Open Questions", state.openQuestions),
+    renderResumeItems("Verification", state.verification),
+    state.nextSafestAction ? `- Next safest action: ${state.nextSafestAction}` : "- Next safest action: none detected.",
+    ""
+  ];
+}
+
+function renderResumeItems(title: string, items: ResumeItem[]) {
+  return [`### ${title}`, listOrNone(items.map((item) => `- ${item.text}`))].join("\n");
 }
 
 function renderVerification(report: HandoffReport) {

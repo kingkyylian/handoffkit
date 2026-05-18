@@ -29,6 +29,18 @@ describe("renderMarkdownReport", () => {
           { name: "test", command: "vitest run" }
         ]
       },
+      resumeSource: {
+        path: "previous.md",
+        preview: "Previous handoff",
+        state: {
+          completed: [{ text: "Published v0.1.0" }],
+          remaining: [{ text: "Add release smoke script" }],
+          failedCommands: [],
+          openQuestions: [],
+          verification: [{ text: "pnpm check passed" }],
+          nextSafestAction: "Add release smoke script"
+        }
+      },
       verification: {
         commands: [{ name: "test", command: "pnpm run test", exitCode: 0, durationMs: 120, output: "passed" }]
       },
@@ -67,6 +79,9 @@ describe("renderMarkdownReport", () => {
     expect(markdown).toContain("secretlint");
     expect(markdown).toContain("dotenv secret");
     expect(markdown).toContain("- `pnpm build`");
+    expect(markdown).toContain("## Resume State");
+    expect(markdown).toContain("Published v0.1.0");
+    expect(markdown).toContain("Next safest action: Add release smoke script");
     expect(markdown).toContain("No LLM APIs were called.");
     expect(markdown).not.toContain("undefined");
   });

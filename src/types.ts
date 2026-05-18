@@ -75,6 +75,21 @@ export interface BudgetInfo {
 export interface ResumeSource {
   path: string;
   preview: string;
+  state?: ResumeState;
+}
+
+export interface ResumeState {
+  completed: ResumeItem[];
+  remaining: ResumeItem[];
+  failedCommands: ResumeItem[];
+  openQuestions: ResumeItem[];
+  verification: ResumeItem[];
+  nextSafestAction?: string;
+}
+
+export interface ResumeItem {
+  text: string;
+  sourceHeading?: string;
 }
 
 export interface VerificationReport {
