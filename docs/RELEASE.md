@@ -9,7 +9,7 @@ HandoffKit releases are intentionally manual. A release should prove that the so
 - Node.js 22 or newer
 - pnpm via Corepack
 
-For GitHub Actions publishing, add an `NPM_TOKEN` repository secret with publish access. Without that secret, the `Release` workflow can run verification but cannot publish.
+For GitHub Actions publishing, add an `NPM_TOKEN` repository secret with publish access. The token must be usable from CI without an interactive one-time password; for npm accounts with publish 2FA, use a granular token with package write access and 2FA bypass enabled, or configure npm trusted publishing. Without a valid publish token, the `Release` workflow can run verification but cannot publish.
 
 ## Before Tagging
 
@@ -35,15 +35,16 @@ The script packs the current package, installs it into a clean temporary git rep
 After CI passes on `main`:
 
 ```sh
-git tag v0.1.0
-git push origin v0.1.0
-gh release create v0.1.0 --repo kingkyylian/handoffkit --title "HandoffKit v0.1.0" --notes-file /private/tmp/handoffkit-v0.1.0-release-notes.md
+version=0.1.1
+git tag "v${version}"
+git push origin "v${version}"
+gh release create "v${version}" --repo kingkyylian/handoffkit --title "HandoffKit v${version}" --notes-file "/private/tmp/handoffkit-v${version}-release-notes.md"
 ```
 
 Preferred publish path:
 
 ```sh
-gh workflow run Release --repo kingkyylian/handoffkit --ref v0.1.0
+gh workflow run Release --repo kingkyylian/handoffkit --ref "v${version}"
 ```
 
 Fallback local publish path when `NPM_TOKEN` is not configured:
@@ -55,8 +56,8 @@ npm --cache ./.npm-cache publish --provenance --access public
 ## After Publishing
 
 ```sh
-npm view @kingkyylian/handoffkit version
-pnpm dlx @kingkyylian/handoffkit pack --goal "Registry smoke" --format json --no-diff
+npm view "@kingkyylian/handoffkit@${version}" version --registry=https://registry.npmjs.org/
+pnpm dlx "@kingkyylian/handoffkit@${version}" pack --goal "Registry smoke" --format json --no-diff
 ```
 
 The published version should match the tag, and the registry smoke command should exit successfully inside a git repository.
