@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1
+
+- Added automated release tarball install smoke testing.
+- Improved first-run CLI help and non-git error messages.
+- Prepared GitHub Actions npm publishing with provenance.
+- Added structured resume state parsing and Markdown rendering for prior handoffs and checkpoints.
+
 ## 0.1.0
 
 - Initial TypeScript ESM CLI scaffold.
