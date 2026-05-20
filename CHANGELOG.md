@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+
+- Added meaningful target-specific Markdown profiles for Codex, Claude Code, Cursor, and generic handoffs.
+- Made `--for` adjust packet titles, section order, and next-agent action notes while preserving the same collected source facts.
+- Added local secret scanner config discovery for `gitleaks` and `secretlint`.
+- Added scanner installation and config guidance when optional local scanners are unavailable.
+- Fixed secret redaction so scanner names such as `secretlint` are not mistaken for secret assignment keys.
+- Updated tests to cover target profile rendering, unchanged JSON source facts across targets, scanner config discovery, direct `scan-secrets` guidance, and scanner-name redaction.
+
 ## 0.1.1
 
 - Added automated release tarball install smoke testing.

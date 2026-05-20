@@ -35,7 +35,7 @@ The script packs the current package, installs it into a clean temporary git rep
 After CI passes on `main`:
 
 ```sh
-version=0.1.1
+version=0.2.0
 git tag "v${version}"
 git push origin "v${version}"
 gh release create "v${version}" --repo kingkyylian/handoffkit --title "HandoffKit v${version}" --notes-file "/private/tmp/handoffkit-v${version}-release-notes.md"
