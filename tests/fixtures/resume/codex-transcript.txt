@@ -1,0 +1,21 @@
+user: Can you finish the release follow-up?
+
+codex: Completed work:
+- Added release smoke coverage
+- Published v0.2.0
+
+claude: Remaining work:
+1. Add transcript parser fixtures
+2. Document cache layout
+
+tool: rtk gh workflow run Release
+
+claude: Failed commands:
+- gh workflow run Release failed because NPM_TOKEN was invalid
+
+codex: Verification:
+- pnpm check passed
+- CI passed on main
+
+claude: Open questions:
+- Should transcript parsing handle Cursor exports?

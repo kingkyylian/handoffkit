@@ -3,11 +3,20 @@ import { redactText } from "./redact.js";
 
 const RESUME_PREVIEW_LIMIT = 3000;
 const SECTION_ALIASES = {
-  completed: [/^completed$/i, /^done$/i, /^done this session$/i, /^what changed$/i, /^implemented$/i],
-  remaining: [/^remaining$/i, /^next steps$/i, /^todo$/i, /^to do$/i],
-  failedCommands: [/^failed commands$/i, /^failures$/i, /^errors$/i],
-  openQuestions: [/^open questions$/i, /^open questions \/ risks$/i, /^open questions and risks$/i, /^questions$/i, /^blockers$/i],
-  verification: [/^verification$/i, /^tests$/i, /^validation$/i]
+  completed: [/^completed$/i, /^completed work$/i, /^done$/i, /^done this session$/i, /^what changed$/i, /^what i changed$/i, /^implemented$/i],
+  remaining: [/^remaining$/i, /^remaining work$/i, /^next steps$/i, /^next action$/i, /^next safest action$/i, /^todo$/i, /^to do$/i],
+  failedCommands: [/^failed command$/i, /^failed commands$/i, /^command failed$/i, /^commands failed$/i, /^failure$/i, /^failures$/i, /^error$/i, /^errors$/i],
+  openQuestions: [
+    /^open question$/i,
+    /^open questions$/i,
+    /^open questions \/ risks$/i,
+    /^open questions and risks$/i,
+    /^question$/i,
+    /^questions$/i,
+    /^blocker$/i,
+    /^blockers$/i
+  ],
+  verification: [/^verification$/i, /^tests$/i, /^tests run$/i, /^validation$/i]
 } as const;
 
 type ResumeSection = keyof typeof SECTION_ALIASES;
@@ -51,13 +60,25 @@ export function parseResumeState(content: string): ResumeState {
       continue;
     }
 
+    const transcriptLine = stripTranscriptPrefix(line);
+    const labeled = parseLabeledTranscriptLine(transcriptLine);
+    if (labeled) {
+      heading = labeled.heading;
+      section = labeled.section;
+
+      if (labeled.item) {
+        appendResumeItem(state, section, labeled.item, heading);
+      }
+      continue;
+    }
+
     if (!section) {
       continue;
     }
 
-    const item = normalizeListItem(line);
+    const item = normalizeListItem(transcriptLine);
     if (item) {
-      state[section].push({ text: redactText(item), ...(heading ? { sourceHeading: redactText(heading) } : {}) });
+      appendResumeItem(state, section, item, heading);
     }
   }
 
@@ -81,9 +102,52 @@ function sectionForHeading(heading: string): ResumeSection | undefined {
   return undefined;
 }
 
+function parseLabeledTranscriptLine(line: string): { section: ResumeSection; heading: string; item?: string } | undefined {
+  const match = line.match(/^([^:]{1,80}):(?:\s*(.*))?$/);
+  if (!match?.[1]) {
+    return undefined;
+  }
+
+  const heading = match[1].trim();
+  const section = sectionForHeading(heading);
+  if (!section) {
+    return undefined;
+  }
+
+  const item = match[2]?.trim();
+  return {
+    section,
+    heading,
+    ...(item ? { item } : {})
+  };
+}
+
+function appendResumeItem(state: ResumeState, section: ResumeSection, item: string, heading: string | undefined) {
+  state[section].push({ text: redactText(item), ...(heading ? { sourceHeading: redactText(heading) } : {}) });
+}
+
 function normalizeListItem(line: string) {
   const match = line.match(/^[-*]\s+(.+)$/) ?? line.match(/^\d+\.\s+(.+)$/);
   return match?.[1]?.trim();
+}
+
+function stripTranscriptPrefix(line: string) {
+  let current = line.trim();
+
+  for (let i = 0; i < 4; i += 1) {
+    const next = current
+      .replace(/^\[[^\]\n]{1,60}\]\s*/, "")
+      .replace(/^(?:user|assistant|system|developer|tool|terminal|command|cmd|result|codex|claude|cursor|gemini)(?:\s*\([^)]*\))?\s*[:>]\s*/i, "")
+      .trim();
+
+    if (next === current) {
+      return current;
+    }
+
+    current = next;
+  }
+
+  return current;
 }
 
 function normalizeHeading(heading: string) {

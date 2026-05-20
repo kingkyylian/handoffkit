@@ -50,4 +50,28 @@ describe("createResumeSource", () => {
     expect(source.state?.verification.map((item) => item.text)).toEqual(["pnpm check passed"]);
     expect(source.state?.nextSafestAction).toBe("Add profile-specific report notes");
   });
+
+  it("extracts structured resume state from Codex and Claude-style transcript sections", () => {
+    const content = readFileSync(new URL("../fixtures/resume/codex-transcript.txt", import.meta.url), "utf8");
+    const source = createResumeSource("codex-transcript.txt", content);
+
+    expect(source.state?.completed.map((item) => item.text)).toEqual(["Added release smoke coverage", "Published v0.2.0"]);
+    expect(source.state?.remaining.map((item) => item.text)).toEqual(["Add transcript parser fixtures", "Document cache layout"]);
+    expect(source.state?.failedCommands.map((item) => item.text)).toEqual(["gh workflow run Release failed because NPM_TOKEN was invalid"]);
+    expect(source.state?.verification.map((item) => item.text)).toEqual(["pnpm check passed", "CI passed on main"]);
+    expect(source.state?.openQuestions.map((item) => item.text)).toEqual(["Should transcript parsing handle Cursor exports?"]);
+    expect(source.state?.nextSafestAction).toBe("Add transcript parser fixtures");
+  });
+
+  it("extracts structured resume state from Cursor and Gemini-style inline transcript labels", () => {
+    const content = readFileSync(new URL("../fixtures/resume/cursor-gemini-transcript.txt", import.meta.url), "utf8");
+    const source = createResumeSource("cursor-gemini-transcript.txt", content);
+
+    expect(source.state?.completed.map((item) => item.text)).toEqual(["Refactored resume parser"]);
+    expect(source.state?.remaining.map((item) => item.text)).toEqual(["Add fixture coverage for Gemini exports"]);
+    expect(source.state?.failedCommands.map((item) => item.text)).toEqual(["pnpm test tests/unit/resume.test.ts failed"]);
+    expect(source.state?.verification.map((item) => item.text)).toEqual(["pnpm test passed after parser update"]);
+    expect(source.state?.openQuestions.map((item) => item.text)).toEqual(["Should copied chat labels be preserved?"]);
+    expect(source.state?.nextSafestAction).toBe("Add fixture coverage for Gemini exports");
+  });
 });

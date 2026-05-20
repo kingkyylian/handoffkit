@@ -1,0 +1,5 @@
+cursor> Done: Refactored resume parser
+gemini> Next steps: Add fixture coverage for Gemini exports
+terminal> Error: pnpm test tests/unit/resume.test.ts failed
+cursor> Tests: pnpm test passed after parser update
+gemini> Question: Should copied chat labels be preserved?
