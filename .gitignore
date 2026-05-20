@@ -5,3 +5,7 @@ coverage
 .npm-cache
 .DS_Store
 *.log
+
+# Local Codex project checkpoints
+docs/checkpoints/*.md
+!docs/checkpoints/README.md
