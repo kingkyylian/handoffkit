@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Added richer deterministic risk notes that map changed file groups to common failure modes across release, CI, tooling, CLI, resume, report rendering, docs, security, and generated artifact workflows.
+- Raised release and package publishing changes to high-severity risk guidance with explicit `pnpm pack:dry-run` and `pnpm smoke:release` verification prompts.
+- Added transcript parsing for Codex, Claude, Cursor, and Gemini-style exported or copied agent sessions.
+- Added opt-in local `.handoffkit` cache artifacts for `verify --cache`, `resume --cache`, and `pack --verify --cache`.
+- Documented the `.handoffkit` cache layout and kept cache/checkpoint artifacts out of changed-file reports by default.
+
 ## 0.2.0
 
 - Added meaningful target-specific Markdown profiles for Codex, Claude Code, Cursor, and generic handoffs.
