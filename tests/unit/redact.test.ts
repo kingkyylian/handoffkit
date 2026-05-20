@@ -17,6 +17,12 @@ describe("redactText", () => {
     expect(output).not.toContain("super-secret-value");
   });
 
+  it("does not treat scanner names as secret assignment keys", () => {
+    const output = redactText("secretlint: Scanner binary not found.");
+
+    expect(output).toBe("secretlint: Scanner binary not found.");
+  });
+
   it("redacts bearer tokens and common provider token prefixes", () => {
     const output = redactText([
       "Authorization: Bearer ghp_1234567890abcdefghijklmnop",

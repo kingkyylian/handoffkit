@@ -48,8 +48,31 @@ describe("renderMarkdownReport", () => {
         notes: [{ severity: "medium", title: "Source changed without tests", detail: "Review test coverage for src/index.ts." }]
       },
       secretScanning: {
-        scanners: [{ name: "gitleaks", available: false }, { name: "secretlint", available: true }],
+        scanners: [
+          {
+            name: "gitleaks",
+            available: false,
+            configFiles: [".gitleaks.toml"],
+            configHint: "config: .gitleaks.toml",
+            installHint: "Install gitleaks from https://github.com/gitleaks/gitleaks, then rerun with --scan-secrets."
+          },
+          {
+            name: "secretlint",
+            available: true,
+            configFiles: [".secretlintrc.json"],
+            configHint: "config: .secretlintrc.json",
+            installHint: "Install secretlint from https://github.com/secretlint/secretlint, then rerun with --scan-secrets."
+          }
+        ],
         scans: [
+          {
+            name: "gitleaks",
+            available: false,
+            ran: false,
+            findings: [],
+            error: "Scanner binary not found.",
+            truncated: false
+          },
           {
             name: "secretlint",
             available: true,
@@ -77,6 +100,8 @@ describe("renderMarkdownReport", () => {
     expect(markdown).toContain("## Risk Notes");
     expect(markdown).toContain("Source changed without tests");
     expect(markdown).toContain("secretlint");
+    expect(markdown).toContain("config: .secretlintrc.json");
+    expect(markdown).toContain("Install gitleaks");
     expect(markdown).toContain("dotenv secret");
     expect(markdown).toContain("- `pnpm build`");
     expect(markdown).toContain("## Resume State");

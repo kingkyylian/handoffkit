@@ -4,6 +4,7 @@ import { relative, join } from "node:path";
 import { performance } from "node:perf_hooks";
 
 import { execa } from "execa";
+import fg from "fast-glob";
 
 import type { SecretFinding, SecretScannerReport, SecretScannerStatus, SecretScanResult } from "../types.js";
 import { redactText } from "./redact.js";
@@ -11,21 +12,19 @@ import { redactText } from "./redact.js";
 const MAX_FINDINGS = 20;
 const ERROR_LIMIT = 2000;
 
-export async function detectSecretScanners(): Promise<SecretScannerReport> {
-  const [gitleaks, secretlint] = await Promise.all([scannerStatus("gitleaks"), scannerStatus("secretlint")]);
+export async function detectSecretScanners(root = process.cwd()): Promise<SecretScannerReport> {
+  const [gitleaks, secretlint] = await Promise.all([scannerStatus("gitleaks", root), scannerStatus("secretlint", root)]);
   return { scanners: [gitleaks, secretlint] };
 }
 
 export async function runSecretScanners(root: string): Promise<SecretScannerReport> {
-  const report = await detectSecretScanners();
+  const report = await detectSecretScanners(root);
   const scans = await Promise.all(report.scanners.map((scanner) => runScanner(root, scanner)));
   return { ...report, scans };
 }
 
 export function formatScannerSummary(report: SecretScannerReport): string {
-  const availability = report.scanners
-    .map((scanner) => `${scanner.name}: ${scanner.available ? "available" : "not found"}`)
-    .join("\n");
+  const availability = report.scanners.map(formatScannerStatus).join("\n");
 
   if (!report.scans) {
     return availability;
@@ -91,15 +90,19 @@ export function normalizeSecretlintFindings(rawJson: string, limit = MAX_FINDING
   return findings;
 }
 
-async function scannerStatus(name: "gitleaks" | "secretlint"): Promise<SecretScannerStatus> {
+async function scannerStatus(name: "gitleaks" | "secretlint", root: string): Promise<SecretScannerStatus> {
   const result = await execa(name, ["--version"], {
     reject: false
   }).catch(() => undefined);
+  const configFiles = await scannerConfigFiles(name, root);
 
   return {
     name,
     available: Boolean(result && result.exitCode === 0),
-    ...(result?.stdout ? { version: result.stdout.trim() } : {})
+    ...(result?.stdout ? { version: result.stdout.trim() } : {}),
+    configFiles,
+    configHint: configHint(name, configFiles),
+    installHint: installHint(name)
   };
 }
 
@@ -200,4 +203,42 @@ function countSecretlintMessages(rawJson: string) {
 function trimError(output: string) {
   const trimmed = output.trim();
   return trimmed.length > ERROR_LIMIT ? `${trimmed.slice(0, ERROR_LIMIT)}\n[truncated]` : trimmed;
+}
+
+function formatScannerStatus(scanner: SecretScannerStatus) {
+  const config = scanner.configFiles.length > 0 ? `; config: ${scanner.configFiles.join(", ")}` : scanner.available ? "" : `; ${scanner.configHint}`;
+  const install = scanner.available ? "" : `; ${scanner.installHint}`;
+  return `${scanner.name}: ${scanner.available ? "available" : "not found"}${config}${install}`;
+}
+
+async function scannerConfigFiles(name: "gitleaks" | "secretlint", root: string) {
+  const patterns =
+    name === "gitleaks"
+      ? ["gitleaks.toml", ".gitleaks.toml", ".gitleaksignore", ".config/gitleaks/*.toml"]
+      : [".secretlintrc", ".secretlintrc.*", "secretlint.config.*"];
+
+  const matches = await fg(patterns, {
+    cwd: root,
+    dot: true,
+    onlyFiles: true,
+    unique: true
+  });
+
+  return matches.sort();
+}
+
+function configHint(name: "gitleaks" | "secretlint", configFiles: string[]) {
+  if (configFiles.length > 0) {
+    return `config: ${configFiles.join(", ")}`;
+  }
+
+  return name === "gitleaks"
+    ? "config: none detected; optional files include .gitleaks.toml, gitleaks.toml, or .config/gitleaks/*.toml"
+    : "config: none detected; optional files include .secretlintrc.*, .secretlintrc, or secretlint.config.*";
+}
+
+function installHint(name: "gitleaks" | "secretlint") {
+  return name === "gitleaks"
+    ? "Install gitleaks from https://github.com/gitleaks/gitleaks, then rerun with --scan-secrets."
+    : "Install secretlint from https://github.com/secretlint/secretlint, then rerun with --scan-secrets.";
 }

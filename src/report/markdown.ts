@@ -206,14 +206,19 @@ function renderSecretScanning(report: HandoffReport) {
 
 function renderSecretScannerReport(secretScanning: NonNullable<HandoffReport["secretScanning"]>) {
   if (!secretScanning.scans) {
-    return secretScanning.scanners.map((scanner) => `- ${scanner.name}: ${scanner.available ? "available" : "not found"}`).join("\n");
+    return secretScanning.scanners.map((scanner) => `- ${scannerStatusLine(scanner)}`).join("\n");
   }
 
   return secretScanning.scans
     .map((scan) => {
+      const status = secretScanning.scanners.find((scanner) => scanner.name === scan.name);
       const lines = [
         `- ${scan.name}: ${scan.ran ? `${scan.findings.length} finding(s), exit ${scan.exitCode}` : scan.error ?? "not run"}`
       ];
+
+      if (status) {
+        lines.push(...scannerGuidanceLines(status));
+      }
 
       for (const finding of scan.findings) {
         lines.push(`  - ${finding.ruleId ? `${finding.ruleId}: ` : ""}${finding.message}${finding.file ? ` (${finding.file}${finding.line ? `:${finding.line}` : ""})` : ""}`);
@@ -226,6 +231,28 @@ function renderSecretScannerReport(secretScanning: NonNullable<HandoffReport["se
       return lines.join("\n");
     })
     .join("\n");
+}
+
+function scannerStatusLine(scanner: NonNullable<HandoffReport["secretScanning"]>["scanners"][number]) {
+  const config = scanner.configFiles.length > 0 ? `; config: ${scanner.configFiles.join(", ")}` : scanner.available ? "" : `; ${scanner.configHint}`;
+  const install = scanner.available ? "" : `; ${scanner.installHint}`;
+  return `${scanner.name}: ${scanner.available ? "available" : "not found"}${config}${install}`;
+}
+
+function scannerGuidanceLines(scanner: NonNullable<HandoffReport["secretScanning"]>["scanners"][number]) {
+  const lines: string[] = [];
+
+  if (scanner.configFiles.length > 0) {
+    lines.push(`  - config: ${scanner.configFiles.join(", ")}`);
+  } else if (!scanner.available) {
+    lines.push(`  - ${scanner.configHint}`);
+  }
+
+  if (!scanner.available) {
+    lines.push(`  - ${scanner.installHint}`);
+  }
+
+  return lines;
 }
 
 function codeBlock(text: string) {

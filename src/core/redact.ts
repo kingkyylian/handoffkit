@@ -1,7 +1,7 @@
 const REDACTION = "[REDACTED]";
 
 const SECRET_KEY_PATTERN =
-  /(\b[A-Z0-9_.-]*(?:API[_-]?KEY|TOKEN|SECRET|PASSWORD|PASSWD|PRIVATE[_-]?KEY|CLIENT[_-]?SECRET|ACCESS[_-]?TOKEN|REFRESH[_-]?TOKEN|COOKIE|SESSION|JWT|AUTH_TOKEN)[A-Z0-9_.-]*\b\s*(?:=|:)\s*)(["']?)([^\s"',}]+)/gi;
+  /(\b(?:[A-Z0-9]+[_.-])*(?:API[_-]?KEY|TOKEN|SECRET|PASSWORD|PASSWD|PRIVATE[_-]?KEY|CLIENT[_-]?SECRET|ACCESS[_-]?TOKEN|REFRESH[_-]?TOKEN|COOKIE|SESSION|JWT|AUTH_TOKEN)(?:[_.-][A-Z0-9]+)*\b\s*(?:=|:)\s*)(["']?)([^\s"',}]+)/gi;
 
 const TOKEN_PATTERNS: RegExp[] = [
   /\bBearer\s+[A-Za-z0-9._~+/=-]{12,}/gi,

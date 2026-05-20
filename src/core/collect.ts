@@ -16,7 +16,7 @@ export async function collectHandoffReport(options: PackOptions): Promise<Handof
     }),
     detectInstructionFiles(root),
     detectPackageInfo(root),
-    options.scanSecrets ? runSecretScanners(root) : detectSecretScanners()
+    options.scanSecrets ? runSecretScanners(root) : detectSecretScanners(root)
   ]);
 
   const report: HandoffReport = {

@@ -1,15 +1,44 @@
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
-import { formatScannerSummary, normalizeGitleaksFindings, normalizeSecretlintFindings } from "../../src/core/scanners.js";
+import { detectSecretScanners, formatScannerSummary, normalizeGitleaksFindings, normalizeSecretlintFindings } from "../../src/core/scanners.js";
 
 describe("formatScannerSummary", () => {
   it("summarizes optional secret scanner availability", () => {
     expect(formatScannerSummary({
       scanners: [
-        { name: "gitleaks", available: false },
-        { name: "secretlint", available: true }
+        {
+          name: "gitleaks",
+          available: false,
+          configFiles: [],
+          configHint: "config: none detected",
+          installHint: "Install gitleaks"
+        },
+        {
+          name: "secretlint",
+          available: true,
+          configFiles: [],
+          configHint: "config: none detected",
+          installHint: "Install secretlint"
+        }
       ]
     })).toContain("secretlint: available");
+  });
+
+  it("reports scanner config files and install hints", async () => {
+    const root = await mkdtemp(join(tmpdir(), "handoffkit-scanners-"));
+    await writeFile(join(root, ".gitleaks.toml"), "[allowlist]\n", "utf8");
+    await writeFile(join(root, ".secretlintrc.json"), "{}\n", "utf8");
+
+    const report = await detectSecretScanners(root);
+
+    expect(report.scanners.find((scanner) => scanner.name === "gitleaks")?.configFiles).toEqual([".gitleaks.toml"]);
+    expect(report.scanners.find((scanner) => scanner.name === "secretlint")?.configFiles).toEqual([".secretlintrc.json"]);
+    expect(report.scanners.find((scanner) => scanner.name === "gitleaks")?.installHint).toContain("Install gitleaks");
+    expect(formatScannerSummary(report)).toContain("config: .secretlintrc.json");
   });
 
   it("normalizes and redacts gitleaks JSON findings with a stable limit", () => {

@@ -190,7 +190,7 @@ HandoffKit reads local git and filesystem metadata from the current repository:
 - package manager and verification scripts from the root `package.json`
 - optional verification results when `--verify` is used
 - deterministic risk notes from changed file paths
-- optional secret scanner availability for `gitleaks` and `secretlint`
+- optional secret scanner availability, local config files, and install guidance for `gitleaks` and `secretlint`
 - bounded, redacted secret scan results when `--scan-secrets` is used
 
 ## What Never Happens
@@ -223,6 +223,8 @@ See [docs/RELEASE.md](docs/RELEASE.md) for the release checklist.
 HandoffKit is local-first and deterministic. It reads local git and filesystem state, renders a report, and redacts likely secrets from generated output. Redaction is best effort, so review packets before pasting them into a third-party tool.
 
 When `--scan-secrets` is used, HandoffKit runs installed local scanners only. It does not install scanners, send code to a service, or fail when `gitleaks` or `secretlint` is missing.
+
+When scanner config files such as `.gitleaks.toml`, `.gitleaksignore`, `.secretlintrc.*`, or `secretlint.config.*` are present, HandoffKit reports them in the packet so the next agent knows which local policy files exist.
 
 ## License
 

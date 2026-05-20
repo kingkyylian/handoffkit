@@ -123,6 +123,9 @@ export interface SecretScannerStatus {
   name: "gitleaks" | "secretlint";
   available: boolean;
   version?: string;
+  configFiles: string[];
+  configHint: string;
+  installHint: string;
 }
 
 export interface SecretScanResult {

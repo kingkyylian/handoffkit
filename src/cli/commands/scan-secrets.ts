@@ -4,6 +4,7 @@ import { z } from "zod";
 import { findGitRoot } from "../../core/git.js";
 import { redactText } from "../../core/redact.js";
 import { runSecretScanners } from "../../core/scanners.js";
+import type { SecretScannerReport, SecretScannerStatus } from "../../types.js";
 
 const ScanSecretsOptionsSchema = z.object({
   format: z.enum(["markdown", "json"]).default("markdown")
@@ -28,11 +29,16 @@ export function createScanSecretsCommand() {
     });
 }
 
-function renderScanMarkdown(report: Awaited<ReturnType<typeof runSecretScanners>>) {
+export function renderScanMarkdown(report: SecretScannerReport) {
   const lines = ["# Secret Scan Results", ""];
 
   for (const scan of report.scans ?? []) {
+    const status = report.scanners.find((scanner) => scanner.name === scan.name);
     lines.push(`- ${scan.name}: ${scan.ran ? `${scan.findings.length} finding(s), exit ${scan.exitCode}` : scan.error ?? "not run"}`);
+
+    if (status) {
+      lines.push(...scannerGuidanceLines(status));
+    }
 
     for (const finding of scan.findings) {
       lines.push(`  - ${finding.ruleId ? `${finding.ruleId}: ` : ""}${finding.message}${finding.file ? ` (${finding.file}${finding.line ? `:${finding.line}` : ""})` : ""}`);
@@ -40,4 +46,20 @@ function renderScanMarkdown(report: Awaited<ReturnType<typeof runSecretScanners>
   }
 
   return `${lines.join("\n")}\n`;
+}
+
+function scannerGuidanceLines(scanner: SecretScannerStatus) {
+  const lines: string[] = [];
+
+  if (scanner.configFiles.length > 0) {
+    lines.push(`  - config: ${scanner.configFiles.join(", ")}`);
+  } else if (!scanner.available) {
+    lines.push(`  - ${scanner.configHint}`);
+  }
+
+  if (!scanner.available) {
+    lines.push(`  - ${scanner.installHint}`);
+  }
+
+  return lines;
 }

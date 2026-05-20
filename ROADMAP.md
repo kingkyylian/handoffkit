@@ -93,9 +93,10 @@ Regex redaction remains the default. HandoffKit detects optional local scanners 
 
 Scan results are bounded and redacted before rendering.
 
+Scanner status also reports common local config files such as `.gitleaks.toml`, `.gitleaksignore`, `.secretlintrc.*`, and `secretlint.config.*`. When a scanner is not installed, the packet includes local installation and config guidance without installing anything automatically.
+
 ## Next Up
 
-- Add scanner-specific installation guidance and config discovery.
 - Make `risk` rules richer by mapping changed files to common failure modes.
 - Improve `--for` formats beyond headings, with agent-specific action prompts.
 - Add transcript parsers for Claude Code, Codex, Cursor, and Gemini exports.
