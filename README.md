@@ -104,6 +104,8 @@ Optimize the packet for a target agent:
 handoffkit pack --for codex --goal "Resume implementation"
 ```
 
+Target profiles keep the same collected facts but adjust the title, section order, and next-agent notes for the selected tool. They do not invent project state or call model-specific APIs.
+
 During development:
 
 ```sh

@@ -36,10 +36,43 @@ describe("pack command", () => {
     expect(parsed.repository.unstagedDiffSummary).toBe("");
     expect(parsed.repository.diff).toBeUndefined();
   });
+
+  it("keeps collected source facts identical across target profiles", async () => {
+    const root = await makeRepo();
+    await writeFile(join(root, "README.md"), "# Demo\n");
+    process.chdir(root);
+
+    const codex = await runPackJson("codex");
+    const cursor = await runPackJson("cursor");
+
+    expect(codex.target).toBe("codex");
+    expect(cursor.target).toBe("cursor");
+    expect(cursor.repository).toEqual(codex.repository);
+    expect(cursor.instructionFiles).toEqual(codex.instructionFiles);
+    expect(cursor.packageInfo).toEqual(codex.packageInfo);
+    expect(cursor.secretScanning).toEqual(codex.secretScanning);
+  });
 });
 
 async function makeRepo() {
   const root = await mkdtemp(join(tmpdir(), "handoffkit-"));
   await execa("git", ["init", "--initial-branch=main"], { cwd: root });
   return root;
+}
+
+async function runPackJson(target: "codex" | "cursor") {
+  let stdout = "";
+  const write = vi.spyOn(process.stdout, "write").mockImplementation((chunk: string | Uint8Array) => {
+    stdout += chunk.toString();
+    return true;
+  });
+
+  try {
+    const program = new Command().exitOverride().addCommand(createPackCommand());
+    await program.parseAsync(["node", "test", "pack", "--goal", "Integration smoke", "--format", "json", "--no-diff", "--for", target]);
+  } finally {
+    write.mockRestore();
+  }
+
+  return JSON.parse(stdout);
 }

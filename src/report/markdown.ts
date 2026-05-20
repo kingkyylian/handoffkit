@@ -1,86 +1,69 @@
 import type { HandoffReport, PackageInfo, ResumeItem, ResumeState } from "../types.js";
+import { profileForTarget, type ReportSectionKey } from "./profiles.js";
 
 export function renderMarkdownReport(report: HandoffReport): string {
+  const profile = profileForTarget(report.target);
   const lines: string[] = [
-    `# ${titleForTarget(report.target)}`,
+    `# ${profile.title}`,
     "",
-    "## Goal",
-    report.goal,
-    "",
-    "## Repository",
-    `- Repository: \`${report.repository.name}\``,
-    `- Branch: \`${report.repository.branch}\``,
-    `- Changed files: ${report.repository.changedFiles.length}`,
-    "",
-    "## Git Status",
-    codeBlock(report.repository.status || "Clean working tree."),
-    "",
-    "## Recent Commits",
-    listOrNone(report.repository.recentCommits.map((commit) => `- ${commit}`)),
-    "",
-    "## Changed Files",
-    listOrNone(report.repository.changedFiles.map((file) => `- \`${file}\``)),
-    "",
-    ...renderBaseDiffSummary(report),
-    "## Diff Summary",
-    "### Staged",
-    codeBlock(report.repository.stagedDiffSummary || "No staged diff."),
-    "",
-    "### Unstaged",
-    codeBlock(report.repository.unstagedDiffSummary || "No unstaged diff."),
-    "",
-    "## Instruction Files",
-    renderInstructionFiles(report.instructionFiles),
-    "",
-    "## Package",
-    renderPackage(report.packageInfo),
-    "",
-    ...renderResumeSource(report),
-    ...renderVerification(report),
-    ...renderRisk(report),
-    ...renderSecretScanning(report),
+    ...profile.sectionOrder.flatMap((section) => renderSection(section, report)),
     "## Next Agent Notes",
+    ...profile.nextAgentNotes.map((note) => `- ${note}`),
     "- This packet was generated from local git and filesystem state.",
     "- Likely secrets were redacted from generated output.",
     "- No LLM APIs were called."
   ];
 
-  if (report.repository.includeDiff && report.repository.diff) {
-    lines.splice(
-      lines.indexOf("## Instruction Files"),
-      0,
-      "## Included Diff",
-      "### Staged Patch",
-      codeBlock(report.repository.diff.staged || "No staged patch."),
-      "",
-      "### Unstaged Patch",
-      codeBlock(report.repository.diff.unstaged || "No unstaged patch."),
-      ""
-    );
-  }
-
-  if (report.repository.includeDiff && report.repository.baseDiff) {
-    lines.splice(
-      lines.indexOf("## Included Diff"),
-      0,
-      `## Included Branch Delta Since \`${report.repository.baseRef}\``,
-      codeBlock(report.repository.baseDiff),
-      ""
-    );
-  }
-
   return `${lines.join("\n")}\n`;
 }
 
-function titleForTarget(target = "generic") {
-  const labels: Record<string, string> = {
-    generic: "Handoff Packet",
-    codex: "Codex Handoff Packet",
-    claude: "Claude Handoff Packet",
-    cursor: "Cursor Handoff Packet"
-  };
-
-  return labels[target] ?? "Handoff Packet";
+function renderSection(section: ReportSectionKey, report: HandoffReport) {
+  switch (section) {
+    case "goal":
+      return ["## Goal", report.goal, ""];
+    case "repository":
+      return [
+        "## Repository",
+        `- Repository: \`${report.repository.name}\``,
+        `- Branch: \`${report.repository.branch}\``,
+        `- Changed files: ${report.repository.changedFiles.length}`,
+        ""
+      ];
+    case "gitStatus":
+      return ["## Git Status", codeBlock(report.repository.status || "Clean working tree."), ""];
+    case "recentCommits":
+      return ["## Recent Commits", listOrNone(report.repository.recentCommits.map((commit) => `- ${commit}`)), ""];
+    case "changedFiles":
+      return ["## Changed Files", listOrNone(report.repository.changedFiles.map((file) => `- \`${file}\``)), ""];
+    case "branchDelta":
+      return renderBaseDiffSummary(report);
+    case "diffSummary":
+      return [
+        "## Diff Summary",
+        "### Staged",
+        codeBlock(report.repository.stagedDiffSummary || "No staged diff."),
+        "",
+        "### Unstaged",
+        codeBlock(report.repository.unstagedDiffSummary || "No unstaged diff."),
+        ""
+      ];
+    case "includedBranchDelta":
+      return renderIncludedBranchDelta(report);
+    case "includedDiff":
+      return renderIncludedDiff(report);
+    case "instructionFiles":
+      return ["## Instruction Files", renderInstructionFiles(report.instructionFiles), ""];
+    case "package":
+      return ["## Package", renderPackage(report.packageInfo), ""];
+    case "resume":
+      return renderResumeSource(report);
+    case "verification":
+      return renderVerification(report);
+    case "risk":
+      return renderRisk(report);
+    case "secretScanning":
+      return renderSecretScanning(report);
+  }
 }
 
 function renderBaseDiffSummary(report: HandoffReport) {
@@ -91,6 +74,34 @@ function renderBaseDiffSummary(report: HandoffReport) {
   return [
     `## Branch Delta Since \`${report.repository.baseRef}\``,
     codeBlock(report.repository.baseDiffSummary || "No committed branch delta detected."),
+    ""
+  ];
+}
+
+function renderIncludedBranchDelta(report: HandoffReport) {
+  if (!report.repository.includeDiff || !report.repository.baseDiff) {
+    return [];
+  }
+
+  return [
+    `## Included Branch Delta Since \`${report.repository.baseRef}\``,
+    codeBlock(report.repository.baseDiff),
+    ""
+  ];
+}
+
+function renderIncludedDiff(report: HandoffReport) {
+  if (!report.repository.includeDiff || !report.repository.diff) {
+    return [];
+  }
+
+  return [
+    "## Included Diff",
+    "### Staged Patch",
+    codeBlock(report.repository.diff.staged || "No staged patch."),
+    "",
+    "### Unstaged Patch",
+    codeBlock(report.repository.diff.unstaged || "No unstaged patch."),
     ""
   ];
 }

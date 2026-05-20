@@ -98,7 +98,6 @@ Scanner status also reports common local config files such as `.gitleaks.toml`, 
 ## Next Up
 
 - Make `risk` rules richer by mapping changed files to common failure modes.
-- Improve `--for` formats beyond headings, with agent-specific action prompts.
 - Add transcript parsers for Claude Code, Codex, Cursor, and Gemini exports.
 - Add a stable `.handoffkit` cache format for verification and resume artifacts.
 

@@ -110,4 +110,82 @@ describe("renderMarkdownReport", () => {
     expect(markdown).toContain("No LLM APIs were called.");
     expect(markdown).not.toContain("undefined");
   });
+
+  it("renders target-specific profile titles, section order, and action notes without changing source facts", () => {
+    const base = minimalReport();
+    const generic = renderMarkdownReport({ ...base, target: "generic" });
+    const codex = renderMarkdownReport({ ...base, target: "codex" });
+    const claude = renderMarkdownReport({ ...base, target: "claude" });
+    const cursor = renderMarkdownReport({ ...base, target: "cursor" });
+
+    expect(generic).toContain("# Handoff Packet");
+    expect(generic).toContain("Use this packet as the starting context for the next coding session.");
+    expect(codex).toContain("# Codex Handoff Packet");
+    expect(codex).toContain("Use local tools to inspect files before editing");
+    expect(claude).toContain("# Claude Code Handoff Packet");
+    expect(claude).toContain("Treat this as concise project memory plus current branch state.");
+    expect(cursor).toContain("# Cursor Handoff Packet");
+    expect(cursor).toContain("Open the changed files first to build editor context.");
+
+    for (const markdown of [generic, codex, claude, cursor]) {
+      expect(markdown).toContain("- Repository: `demo`");
+      expect(markdown).toContain("- Branch: `main`");
+      expect(markdown).toContain("- `src/index.ts`");
+      expect(markdown).toContain("pnpm run test");
+      expect(markdown).toContain("Continue release notes");
+    }
+
+    expect(indexOfSection(generic, "## Repository")).toBeLessThan(indexOfSection(generic, "## Git Status"));
+    expect(indexOfSection(codex, "## Verification")).toBeLessThan(indexOfSection(codex, "## Diff Summary"));
+    expect(indexOfSection(claude, "## Resume State")).toBeLessThan(indexOfSection(claude, "## Repository"));
+    expect(indexOfSection(cursor, "## Changed Files")).toBeLessThan(indexOfSection(cursor, "## Git Status"));
+  });
 });
+
+function minimalReport(): HandoffReport {
+  return {
+    goal: "Resume implementation",
+    target: "generic",
+    repository: {
+      name: "demo",
+      branch: "main",
+      status: "## main\n M src/index.ts",
+      recentCommits: ["abc1234 Add CLI"],
+      changedFiles: ["src/index.ts"],
+      stagedDiffSummary: "",
+      unstagedDiffSummary: " src/index.ts | 2 +-",
+      includeDiff: false
+    },
+    instructionFiles: [],
+    packageInfo: {
+      name: "demo",
+      packageManager: "pnpm",
+      verificationScripts: [{ name: "test", command: "vitest run" }]
+    },
+    resumeSource: {
+      path: "previous.md",
+      preview: "Previous handoff",
+      state: {
+        completed: [{ text: "Drafted changelog" }],
+        remaining: [{ text: "Continue release notes" }],
+        failedCommands: [],
+        openQuestions: [],
+        verification: [],
+        nextSafestAction: "Continue release notes"
+      }
+    },
+    verification: {
+      commands: [{ name: "test", command: "pnpm run test", exitCode: 0, durationMs: 120, output: "passed" }]
+    },
+    risk: {
+      notes: [{ severity: "low", title: "Docs-only follow-up", detail: "Review wording before release." }]
+    },
+    budget: { requestedTokens: 4000, estimatedTokens: 0, wasTrimmed: false }
+  };
+}
+
+function indexOfSection(markdown: string, section: string) {
+  const index = markdown.indexOf(section);
+  expect(index).toBeGreaterThanOrEqual(0);
+  return index;
+}
