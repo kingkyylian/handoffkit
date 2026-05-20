@@ -1,6 +1,6 @@
 {
   "name": "@kingkyylian/handoffkit",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Clean handoff packets for interrupted AI coding sessions.",
   "type": "module",
   "license": "MIT",

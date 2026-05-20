@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+- Added `handoffkit cache list` and `handoffkit cache show` for inspecting local `.handoffkit` artifacts.
+- Added `handoffkit resume --from-cache latest` and cache refs such as `resume/latest` for continuing from cached resume sources.
+- Added `handoffkit pack --include-cache` to include recent cache summaries in handoff packets.
+- Added cache-backed handoff workflow documentation and an end-to-end example.
+
 ## 0.3.0
 
 - Added richer deterministic risk notes that map changed file groups to common failure modes across release, CI, tooling, CLI, resume, report rendering, docs, security, and generated artifact workflows.
