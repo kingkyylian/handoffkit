@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { Command } from "commander";
 import { z } from "zod";
 
-import { writeCacheArtifact } from "../../core/cache.js";
+import { readResumeSourceFromCache, writeCacheArtifact } from "../../core/cache.js";
 import { collectHandoffReport } from "../../core/collect.js";
 import { findGitRoot } from "../../core/git.js";
 import { createResumeSource } from "../../core/resume.js";
@@ -15,24 +15,26 @@ const ResumeOptionsSchema = z.object({
   format: z.enum(["markdown", "json"]).default("markdown"),
   for: z.enum(["generic", "codex", "claude", "cursor"]).default("generic"),
   budget: z.number().int().positive().default(4000),
-  cache: z.boolean().default(false)
+  cache: z.boolean().default(false),
+  fromCache: z.string().trim().min(1).optional()
 });
 
 export function createResumeCommand() {
   return new Command("resume")
     .description("Create a fresh handoff packet using a previous handoff as resume context.")
     .summary("Merge a previous handoff or transcript with fresh repo state.")
-    .argument("<path>", "previous handoff or transcript file")
+    .argument("[path]", "previous handoff or transcript file")
     .option("--goal <text>", "new handoff goal", "Resume interrupted AI coding session")
     .option("--output <path>", "write output to a file instead of stdout")
     .option("--format <format>", "output format: markdown or json", "markdown")
     .option("--for <agent>", "target output: generic, codex, claude, or cursor", "generic")
     .option("--budget <tokens>", "rough output token budget", parseBudget, 4000)
     .option("--cache", "write a local resume artifact under .handoffkit/resume")
-    .action(async (path: string, rawOptions) => {
+    .option("--from-cache <ref>", "load resume source from .handoffkit/resume, for example latest or resume/latest")
+    .action(async (path: string | undefined, rawOptions) => {
       const options = ResumeOptionsSchema.parse(rawOptions);
-      const source = createResumeSource(path, await readFile(path, "utf8"));
-      const root = options.cache ? await findGitRoot(process.cwd()) : undefined;
+      const root = options.cache || options.fromCache ? await findGitRoot(process.cwd()) : undefined;
+      const source = await resolveResumeSource(path, options.fromCache, root);
       const report = await collectHandoffReport({
         goal: options.goal,
         cwd: process.cwd(),
@@ -44,6 +46,7 @@ export function createResumeCommand() {
         includeDiffSummary: true,
         includeVerification: false,
         scanSecrets: false,
+        includeCache: false,
         resumeSource: source
       });
 
@@ -58,6 +61,26 @@ export function createResumeCommand() {
 
       await writeRenderedReport(report, options.format, options.budget, options.output);
     });
+}
+
+async function resolveResumeSource(path: string | undefined, fromCache: string | undefined, root: string | undefined) {
+  if (path && fromCache) {
+    throw new Error("Pass either <path> or --from-cache, not both.");
+  }
+
+  if (fromCache) {
+    if (!root) {
+      throw new Error("--from-cache requires a git repository.");
+    }
+
+    return readResumeSourceFromCache(root, fromCache);
+  }
+
+  if (!path) {
+    throw new Error("resume requires <path> or --from-cache <ref>.");
+  }
+
+  return createResumeSource(path, await readFile(path, "utf8"));
 }
 
 function parseBudget(value: string) {

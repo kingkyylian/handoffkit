@@ -44,6 +44,9 @@ describe("renderMarkdownReport", () => {
       verification: {
         commands: [{ name: "test", command: "pnpm run test", exitCode: 0, durationMs: 120, output: "passed" }]
       },
+      cache: {
+        artifacts: [{ kind: "resume", name: "latest", createdAt: "2026-05-20T12:05:00.000Z", path: ".handoffkit/resume/latest.json" }]
+      },
       risk: {
         notes: [{ severity: "medium", title: "Source changed without tests", detail: "Review test coverage for src/index.ts." }]
       },
@@ -97,6 +100,8 @@ describe("renderMarkdownReport", () => {
     expect(markdown).toContain("Use pnpm test before handoff.");
     expect(markdown).toContain("## Verification");
     expect(markdown).toContain("pnpm run test");
+    expect(markdown).toContain("## Cache Artifacts");
+    expect(markdown).toContain("resume/latest");
     expect(markdown).toContain("## Risk Notes");
     expect(markdown).toContain("Source changed without tests");
     expect(markdown).toContain("secretlint");

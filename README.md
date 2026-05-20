@@ -134,6 +134,7 @@ Omit diff summaries and patches:
 
 ```sh
 handoffkit pack --goal "Summarize repo state" --no-diff
+handoffkit pack --goal "Continue from recent cache" --include-cache
 ```
 
 Set a rough Markdown token budget:
@@ -166,6 +167,14 @@ Resume from a previous handoff or transcript:
 ```sh
 handoffkit resume previous-handoff.md --goal "Continue from here"
 handoffkit resume previous-handoff.md --goal "Continue from here" --cache
+handoffkit resume --from-cache latest --goal "Continue cached session"
+```
+
+Inspect local cache artifacts:
+
+```sh
+handoffkit cache list
+handoffkit cache show resume latest
 ```
 
 ## CLI Options
@@ -181,12 +190,14 @@ handoffkit resume previous-handoff.md --goal "Continue from here" --cache
 | `--verify` | Run safe verification scripts and include results in the packet. |
 | `--scan-secrets` | Run optional local secret scanners and include bounded redacted results. |
 | `--cache` | Explicitly write local verification or resume artifacts under `.handoffkit/`. |
+| `--include-cache` | Include recent `.handoffkit` artifact summaries in `pack` output. |
+| `--from-cache <ref>` | Resume from a cached resume artifact such as `latest` or `resume/latest`. |
 | `--include-diff` | Include full tracked patches and bounded untracked previews. |
 | `--no-diff` | Omit diff summaries and full patches. |
 
 ## Local Cache
 
-Cache writes are opt-in. `verify --cache`, `pack --verify --cache`, and `resume --cache` write redacted JSON artifacts under `.handoffkit/verification` or `.handoffkit/resume`. The cache directory is ignored by default so repeated handoffs do not pollute git status or generated reports.
+Cache writes are opt-in. `verify --cache`, `pack --verify --cache`, and `resume --cache` write redacted JSON artifacts under `.handoffkit/verification` or `.handoffkit/resume`. Use `cache list` and `cache show` to inspect artifacts, `resume --from-cache latest` to continue from the latest cached resume source, and `pack --include-cache` to include recent cache summaries in a new handoff packet. The cache directory is ignored by default so repeated handoffs do not pollute git status or generated reports.
 
 See [docs/CACHE.md](docs/CACHE.md) for the file layout.
 
@@ -200,6 +211,7 @@ HandoffKit reads local git and filesystem metadata from the current repository:
 - compact previews of detected instruction files
 - package manager and verification scripts from the root `package.json`
 - optional verification results when `--verify` is used
+- optional local cache summaries when `--include-cache` is used
 - deterministic risk notes from changed file paths
 - optional secret scanner availability, local config files, and install guidance for `gitleaks` and `secretlint`
 - bounded, redacted secret scan results when `--scan-secrets` is used

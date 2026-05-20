@@ -1,4 +1,5 @@
 import type { HandoffReport, PackOptions } from "../types.js";
+import { listCacheArtifacts } from "./cache.js";
 import { collectGitInfo, findGitRoot } from "./git.js";
 import { detectInstructionFiles } from "./instructions.js";
 import { detectPackageInfo } from "./package-json.js";
@@ -27,6 +28,7 @@ export async function collectHandoffReport(options: PackOptions): Promise<Handof
     ...(packageInfo ? { packageInfo } : {}),
     ...(options.resumeSource ? { resumeSource: options.resumeSource } : {}),
     ...(options.includeVerification ? { verification: await runVerification(root) } : {}),
+    ...(options.includeCache ? { cache: { artifacts: await listCacheArtifacts(root) } } : {}),
     secretScanning,
     budget: {
       requestedTokens: options.budget,

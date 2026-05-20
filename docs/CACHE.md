@@ -32,3 +32,26 @@ Each artifact is a JSON envelope:
 ```
 
 Artifact contents are redacted with the same best-effort redactor used for CLI output.
+
+## Inspect
+
+```sh
+handoffkit cache list
+handoffkit cache list --format json
+handoffkit cache show resume latest
+handoffkit cache show verification latest --format json
+```
+
+`cache list` shows local artifacts with kind, name, creation time, and path.
+`cache show` prints a single cache envelope.
+
+## Reuse
+
+```sh
+handoffkit resume --from-cache latest --goal "Continue cached session"
+handoffkit resume --from-cache resume/latest --goal "Continue cached session"
+handoffkit pack --goal "Hand off with cache context" --include-cache
+```
+
+`resume --from-cache` reads `.handoffkit/resume/<name>.json` and uses the stored `source` as the resume source.
+`pack --include-cache` includes bounded artifact summaries only; it does not embed full cache JSON payloads.

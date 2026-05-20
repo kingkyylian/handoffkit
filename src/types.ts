@@ -13,6 +13,7 @@ export interface PackOptions {
   since?: string;
   includeVerification: boolean;
   scanSecrets: boolean;
+  includeCache: boolean;
   resumeSource?: ResumeSource;
 }
 
@@ -24,6 +25,7 @@ export interface HandoffReport {
   packageInfo?: PackageInfo;
   resumeSource?: ResumeSource;
   verification?: VerificationReport;
+  cache?: CacheReport;
   risk?: RiskReport;
   secretScanning?: SecretScannerReport;
   budget: BudgetInfo;
@@ -90,6 +92,26 @@ export interface ResumeState {
 export interface ResumeItem {
   text: string;
   sourceHeading?: string;
+}
+
+export type CacheArtifactKind = "verification" | "resume";
+
+export interface CacheArtifactEnvelope<T = unknown> {
+  version: 1;
+  kind: CacheArtifactKind;
+  createdAt: string;
+  data: T;
+}
+
+export interface CacheArtifactSummary {
+  kind: CacheArtifactKind;
+  name: string;
+  createdAt: string;
+  path: string;
+}
+
+export interface CacheReport {
+  artifacts: CacheArtifactSummary[];
 }
 
 export interface VerificationReport {

@@ -17,7 +17,8 @@ const PackCliOptionsSchema = z.object({
   since: z.string().trim().min(1).optional(),
   verify: z.boolean().default(false),
   scanSecrets: z.boolean().default(false),
-  cache: z.boolean().default(false)
+  cache: z.boolean().default(false),
+  includeCache: z.boolean().default(false)
 });
 
 export function createPackCommand() {
@@ -33,6 +34,7 @@ export function createPackCommand() {
     .option("--verify", "run safe verification scripts and include results")
     .option("--scan-secrets", "run optional local secret scanners and include bounded results")
     .option("--cache", "write explicit local cache artifacts under .handoffkit when available")
+    .option("--include-cache", "include recent .handoffkit artifact summaries")
     .option("--include-diff", "include full staged and unstaged patches", false)
     .option("--no-diff", "omit diff summaries and full patches")
     .action(async (rawOptions) => {
@@ -49,7 +51,8 @@ export function createPackCommand() {
         includeDiffSummary: options.diff,
         ...(options.since ? { since: options.since } : {}),
         includeVerification: options.verify,
-        scanSecrets: options.scanSecrets
+        scanSecrets: options.scanSecrets,
+        includeCache: options.includeCache
       });
 
       if (options.cache && root && report.verification) {

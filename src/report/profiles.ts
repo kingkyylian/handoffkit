@@ -14,6 +14,7 @@ export type ReportSectionKey =
   | "package"
   | "resume"
   | "verification"
+  | "cache"
   | "risk"
   | "secretScanning";
 
@@ -37,6 +38,7 @@ const genericOrder: ReportSectionKey[] = [
   "package",
   "resume",
   "verification",
+  "cache",
   "risk",
   "secretScanning"
 ];
@@ -58,6 +60,7 @@ const profiles: Record<AgentTarget, ReportProfile> = {
       "gitStatus",
       "changedFiles",
       "verification",
+      "cache",
       "risk",
       "branchDelta",
       "diffSummary",
@@ -82,6 +85,7 @@ const profiles: Record<AgentTarget, ReportProfile> = {
       "resume",
       "repository",
       "verification",
+      "cache",
       "risk",
       "changedFiles",
       "gitStatus",
@@ -114,6 +118,7 @@ const profiles: Record<AgentTarget, ReportProfile> = {
       "instructionFiles",
       "package",
       "verification",
+      "cache",
       "risk",
       "resume",
       "secretScanning",

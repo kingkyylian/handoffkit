@@ -1,4 +1,4 @@
-import type { HandoffReport, PackageInfo, ResumeItem, ResumeState } from "../types.js";
+import type { CacheArtifactSummary, HandoffReport, PackageInfo, ResumeItem, ResumeState } from "../types.js";
 import { profileForTarget, type ReportSectionKey } from "./profiles.js";
 
 export function renderMarkdownReport(report: HandoffReport): string {
@@ -59,6 +59,8 @@ function renderSection(section: ReportSectionKey, report: HandoffReport) {
       return renderResumeSource(report);
     case "verification":
       return renderVerification(report);
+    case "cache":
+      return renderCache(report);
     case "risk":
       return renderRisk(report);
     case "secretScanning":
@@ -189,6 +191,22 @@ function renderVerification(report: HandoffReport) {
       : "No safe verification scripts detected.",
     ""
   ];
+}
+
+function renderCache(report: HandoffReport) {
+  if (!report.cache) {
+    return [];
+  }
+
+  return ["## Cache Artifacts", renderCacheArtifacts(report.cache.artifacts), ""];
+}
+
+function renderCacheArtifacts(artifacts: CacheArtifactSummary[]) {
+  if (artifacts.length === 0) {
+    return "No cache artifacts found.";
+  }
+
+  return artifacts.map((artifact) => `- ${artifact.kind}/${artifact.name} (${artifact.createdAt}) - \`${artifact.path}\``).join("\n");
 }
 
 function renderRisk(report: HandoffReport) {

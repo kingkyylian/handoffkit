@@ -23,7 +23,8 @@ export function createRiskCommand() {
         includeDiff: false,
         includeDiffSummary: false,
         includeVerification: false,
-        scanSecrets: false
+        scanSecrets: false,
+        includeCache: false
       });
 
       if (options.format === "json") {
