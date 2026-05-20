@@ -92,9 +92,13 @@ describe("collectGitInfo", () => {
     await mkdir(join(root, "node_modules/pkg"), { recursive: true });
     await mkdir(join(root, "dist"), { recursive: true });
     await mkdir(join(root, "coverage"), { recursive: true });
+    await mkdir(join(root, ".handoffkit/verification"), { recursive: true });
+    await mkdir(join(root, ".handoffkit/resume"), { recursive: true });
     await writeFile(join(root, "node_modules/pkg/index.js"), "module.exports = {};\n");
     await writeFile(join(root, "dist/index.js"), "console.log('built');\n");
     await writeFile(join(root, "coverage/result.json"), "{}\n");
+    await writeFile(join(root, ".handoffkit/verification/latest.json"), "{}\n");
+    await writeFile(join(root, ".handoffkit/resume/latest.json"), "{}\n");
     await writeFile(join(root, "src.ts"), "export const value = 1;\n");
 
     const info = await collectGitInfo(root, { includeDiff: false, includeDiffSummary: true });
@@ -104,6 +108,7 @@ describe("collectGitInfo", () => {
     expect(info.unstagedDiffSummary).not.toContain("node_modules");
     expect(info.unstagedDiffSummary).not.toContain("dist");
     expect(info.unstagedDiffSummary).not.toContain("coverage");
+    expect(info.unstagedDiffSummary).not.toContain(".handoffkit");
   });
 });
 

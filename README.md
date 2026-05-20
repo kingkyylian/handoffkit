@@ -146,6 +146,7 @@ Run verification directly:
 
 ```sh
 handoffkit verify
+handoffkit verify --cache
 ```
 
 Inspect deterministic risk notes:
@@ -164,6 +165,7 @@ Resume from a previous handoff or transcript:
 
 ```sh
 handoffkit resume previous-handoff.md --goal "Continue from here"
+handoffkit resume previous-handoff.md --goal "Continue from here" --cache
 ```
 
 ## CLI Options
@@ -178,8 +180,15 @@ handoffkit resume previous-handoff.md --goal "Continue from here"
 | `--since <ref>` | Focus committed branch delta on a base ref such as `main`. |
 | `--verify` | Run safe verification scripts and include results in the packet. |
 | `--scan-secrets` | Run optional local secret scanners and include bounded redacted results. |
+| `--cache` | Explicitly write local verification or resume artifacts under `.handoffkit/`. |
 | `--include-diff` | Include full tracked patches and bounded untracked previews. |
 | `--no-diff` | Omit diff summaries and full patches. |
+
+## Local Cache
+
+Cache writes are opt-in. `verify --cache`, `pack --verify --cache`, and `resume --cache` write redacted JSON artifacts under `.handoffkit/verification` or `.handoffkit/resume`. The cache directory is ignored by default so repeated handoffs do not pollute git status or generated reports.
+
+See [docs/CACHE.md](docs/CACHE.md) for the file layout.
 
 ## What Gets Collected
 
@@ -200,7 +209,7 @@ HandoffKit reads local git and filesystem metadata from the current repository:
 - No LLM API calls.
 - No network requests from the CLI.
 - No git writes, commits, staging, or branch changes.
-- No files are written unless `--output` is provided.
+- No files are written unless `--output` or explicit `--cache` is provided.
 
 ## Development
 

@@ -3,6 +3,7 @@ dist
 coverage
 .tmp-tests
 .npm-cache
+.handoffkit/
 .DS_Store
 *.log
 

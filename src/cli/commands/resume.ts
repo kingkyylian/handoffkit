@@ -3,7 +3,9 @@ import { readFile } from "node:fs/promises";
 import { Command } from "commander";
 import { z } from "zod";
 
+import { writeCacheArtifact } from "../../core/cache.js";
 import { collectHandoffReport } from "../../core/collect.js";
+import { findGitRoot } from "../../core/git.js";
 import { createResumeSource } from "../../core/resume.js";
 import { writeRenderedReport } from "../output.js";
 
@@ -12,7 +14,8 @@ const ResumeOptionsSchema = z.object({
   output: z.string().optional(),
   format: z.enum(["markdown", "json"]).default("markdown"),
   for: z.enum(["generic", "codex", "claude", "cursor"]).default("generic"),
-  budget: z.number().int().positive().default(4000)
+  budget: z.number().int().positive().default(4000),
+  cache: z.boolean().default(false)
 });
 
 export function createResumeCommand() {
@@ -25,9 +28,11 @@ export function createResumeCommand() {
     .option("--format <format>", "output format: markdown or json", "markdown")
     .option("--for <agent>", "target output: generic, codex, claude, or cursor", "generic")
     .option("--budget <tokens>", "rough output token budget", parseBudget, 4000)
+    .option("--cache", "write a local resume artifact under .handoffkit/resume")
     .action(async (path: string, rawOptions) => {
       const options = ResumeOptionsSchema.parse(rawOptions);
       const source = createResumeSource(path, await readFile(path, "utf8"));
+      const root = options.cache ? await findGitRoot(process.cwd()) : undefined;
       const report = await collectHandoffReport({
         goal: options.goal,
         cwd: process.cwd(),
@@ -41,6 +46,15 @@ export function createResumeCommand() {
         scanSecrets: false,
         resumeSource: source
       });
+
+      if (options.cache && root) {
+        const cache = await writeCacheArtifact(root, "resume", {
+          goal: report.goal,
+          target: report.target,
+          source
+        });
+        process.stderr.write(`Wrote resume cache to ${cache.latestPath}\n`);
+      }
 
       await writeRenderedReport(report, options.format, options.budget, options.output);
     });

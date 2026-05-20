@@ -1,7 +1,9 @@
 import { Command } from "commander";
 import { z } from "zod";
 
+import { writeCacheArtifact } from "../../core/cache.js";
 import { collectHandoffReport } from "../../core/collect.js";
+import { findGitRoot } from "../../core/git.js";
 import { writeRenderedReport } from "../output.js";
 
 const PackCliOptionsSchema = z.object({
@@ -14,7 +16,8 @@ const PackCliOptionsSchema = z.object({
   diff: z.boolean().default(true),
   since: z.string().trim().min(1).optional(),
   verify: z.boolean().default(false),
-  scanSecrets: z.boolean().default(false)
+  scanSecrets: z.boolean().default(false),
+  cache: z.boolean().default(false)
 });
 
 export function createPackCommand() {
@@ -29,10 +32,12 @@ export function createPackCommand() {
     .option("--since <ref>", "focus committed branch delta on a base ref")
     .option("--verify", "run safe verification scripts and include results")
     .option("--scan-secrets", "run optional local secret scanners and include bounded results")
+    .option("--cache", "write explicit local cache artifacts under .handoffkit when available")
     .option("--include-diff", "include full staged and unstaged patches", false)
     .option("--no-diff", "omit diff summaries and full patches")
     .action(async (rawOptions) => {
       const options = parseOptions(rawOptions);
+      const root = options.cache ? await findGitRoot(process.cwd()) : undefined;
       const report = await collectHandoffReport({
         goal: options.goal,
         cwd: process.cwd(),
@@ -46,6 +51,15 @@ export function createPackCommand() {
         includeVerification: options.verify,
         scanSecrets: options.scanSecrets
       });
+
+      if (options.cache && root && report.verification) {
+        const cache = await writeCacheArtifact(root, "verification", {
+          goal: report.goal,
+          target: report.target,
+          verification: report.verification
+        });
+        process.stderr.write(`Wrote verification cache to ${cache.latestPath}\n`);
+      }
 
       await writeRenderedReport(report, options.format, options.budget, options.output);
     });

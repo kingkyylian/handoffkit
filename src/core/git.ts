@@ -7,7 +7,7 @@ import { HandoffKitCliError } from "../cli/errors.js";
 import type { DiffInfo, RepositoryInfo } from "../types.js";
 
 const UNTRACKED_PATCH_CHAR_LIMIT = 20_000;
-const IGNORED_CHANGED_PATH_PREFIXES = ["node_modules/", "dist/", "coverage/", ".git/"];
+const IGNORED_CHANGED_PATH_PREFIXES = ["node_modules/", "dist/", "coverage/", ".git/", ".handoffkit/"];
 
 export interface GitCollectOptions {
   includeDiff: boolean;
