@@ -29,6 +29,25 @@ HandoffKit is not a repo ingestion tool. It is not trying to replace Repomix, Gi
 
 Its job is narrower: capture the live state of an interrupted AI coding session so another agent can resume without guessing.
 
+## Example Output
+
+```text
+# HandoffKit Packet
+
+Goal: Continue the profile README and repo metadata polish.
+
+Repository: kingkyylian/handoffkit
+Branch: main
+Working tree: 2 modified files, 1 untracked file
+Recent commits: release notes, cache resume support, secret scanner status
+Detected instructions: AGENTS.md, CLAUDE.md, .github/copilot-instructions.md
+Verification scripts: typecheck, lint, test, build, check
+Risk notes: README/docs-only change; no runtime code changed.
+Next step: review the README diff, then run pnpm check before publishing.
+```
+
+The packet is deterministic Markdown or JSON generated from local git and filesystem state. Full patches are included only when `--include-diff` is selected.
+
 ## HandoffKit vs. Repo Instruction Tools
 
 Repo instruction tools such as AgentFit help shape reusable project guidance for AI agents. HandoffKit has a different job: it captures the live state of a coding session right now.
