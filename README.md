@@ -194,6 +194,8 @@ Inspect local cache artifacts:
 ```sh
 handoffkit cache list
 handoffkit cache show resume latest
+handoffkit cache export resume latest --output resume-cache.json
+handoffkit cache import resume-cache.json
 ```
 
 ## CLI Options
@@ -216,7 +218,7 @@ handoffkit cache show resume latest
 
 ## Local Cache
 
-Cache writes are opt-in. `verify --cache`, `pack --verify --cache`, and `resume --cache` write redacted JSON artifacts under `.handoffkit/verification` or `.handoffkit/resume`. Use `cache list` and `cache show` to inspect artifacts, `resume --from-cache latest` to continue from the latest cached resume source, and `pack --include-cache` to include recent cache summaries in a new handoff packet. The cache directory is ignored by default so repeated handoffs do not pollute git status or generated reports.
+Cache writes are opt-in. `verify --cache`, `pack --verify --cache`, and `resume --cache` write redacted JSON artifacts under `.handoffkit/verification` or `.handoffkit/resume`. Use `cache list` and `cache show` to inspect artifacts, `cache export` and `cache import` to move redacted cache artifacts between clones, `resume --from-cache latest` to continue from the latest cached resume source, and `pack --include-cache` to include recent cache summaries in a new handoff packet. The cache directory is ignored by default so repeated handoffs do not pollute git status or generated reports.
 
 See [docs/CACHE.md](docs/CACHE.md) for the file layout.
 
@@ -240,7 +242,7 @@ HandoffKit reads local git and filesystem metadata from the current repository:
 - No LLM API calls.
 - No network requests from the CLI.
 - No git writes, commits, staging, or branch changes.
-- No files are written unless `--output` or explicit `--cache` is provided.
+- No files are written unless `--output`, explicit `--cache`, or an explicit cache import/export command is provided.
 
 ## Development
 

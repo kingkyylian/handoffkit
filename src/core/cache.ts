@@ -18,8 +18,31 @@ export async function writeCacheArtifact<T>(root: string, kind: CacheArtifactKin
     createdAt,
     data
   };
-  const cacheDir = join(root, ".handoffkit", kind);
-  const artifactPath = join(cacheDir, `${cacheTimestamp(createdAt)}.json`);
+
+  return writeCacheEnvelope(root, envelope);
+}
+
+export async function importCacheArtifact(root: string, artifact: unknown) {
+  const envelope = validateCacheArtifactEnvelope(artifact, "imported cache artifact");
+
+  return writeCacheEnvelope(root, envelope);
+}
+
+export function parseCacheArtifactEnvelope(contents: string, source = "cache artifact"): CacheArtifactEnvelope {
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(contents);
+  } catch {
+    throw new Error(`Invalid cache artifact JSON: ${source}`);
+  }
+
+  return validateCacheArtifactEnvelope(parsed, source);
+}
+
+async function writeCacheEnvelope(root: string, envelope: CacheArtifactEnvelope) {
+  const cacheDir = join(root, ".handoffkit", envelope.kind);
+  const artifactPath = join(cacheDir, `${cacheTimestamp(envelope.createdAt)}.json`);
   const latestPath = join(cacheDir, "latest.json");
   const contents = `${redactText(JSON.stringify(envelope, null, 2))}\n`;
 
@@ -40,9 +63,9 @@ export async function listCacheArtifacts(root: string): Promise<CacheArtifactSum
 export async function readCacheArtifact(root: string, kind: CacheArtifactKind, name = "latest"): Promise<CacheArtifactEnvelope> {
   const normalizedName = normalizeArtifactName(name);
   const artifactPath = join(root, ".handoffkit", kind, `${normalizedName}.json`);
-  const envelope = JSON.parse(await readFile(artifactPath, "utf8")) as CacheArtifactEnvelope;
+  const envelope = parseCacheArtifactEnvelope(await readFile(artifactPath, "utf8"), `.handoffkit/${kind}/${normalizedName}.json`);
 
-  if (envelope.version !== 1 || envelope.kind !== kind || typeof envelope.createdAt !== "string") {
+  if (envelope.kind !== kind) {
     throw new Error(`Invalid cache artifact: .handoffkit/${kind}/${normalizedName}.json`);
   }
 
@@ -125,6 +148,31 @@ function isCacheArtifactKind(value: string): value is CacheArtifactKind {
   return CACHE_KINDS.includes(value as CacheArtifactKind);
 }
 
+function validateCacheArtifactEnvelope(value: unknown, source: string): CacheArtifactEnvelope {
+  if (!value || typeof value !== "object") {
+    throw new Error(`Invalid cache artifact: ${source}`);
+  }
+
+  const artifact = value as Partial<CacheArtifactEnvelope>;
+  if (
+    artifact.version !== 1 ||
+    !artifact.kind ||
+    !isCacheArtifactKind(artifact.kind) ||
+    typeof artifact.createdAt !== "string" ||
+    !isCacheTimestamp(artifact.createdAt) ||
+    !("data" in artifact)
+  ) {
+    throw new Error(`Invalid cache artifact: ${source}`);
+  }
+
+  return {
+    version: 1,
+    kind: artifact.kind,
+    createdAt: artifact.createdAt,
+    data: artifact.data
+  };
+}
+
 function normalizeArtifactName(name: string) {
   const withoutExtension = name.replace(/\.json$/i, "");
 
@@ -133,6 +181,11 @@ function normalizeArtifactName(name: string) {
   }
 
   return withoutExtension;
+}
+
+function isCacheTimestamp(value: string) {
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString() === value;
 }
 
 function cacheTimestamp(timestamp: string) {

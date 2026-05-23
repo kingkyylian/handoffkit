@@ -1,12 +1,19 @@
+import { readFile, writeFile } from "node:fs/promises";
+
 import { Command } from "commander";
 import { z } from "zod";
 
-import { listCacheArtifacts, readCacheArtifact } from "../../core/cache.js";
+import { importCacheArtifact, listCacheArtifacts, parseCacheArtifactEnvelope, readCacheArtifact } from "../../core/cache.js";
 import { findGitRoot } from "../../core/git.js";
+import { redactText } from "../../core/redact.js";
 import type { CacheArtifactEnvelope, CacheArtifactKind, CacheArtifactSummary } from "../../types.js";
 
 const CacheFormatOptionsSchema = z.object({
   format: z.enum(["markdown", "json"]).default("markdown")
+});
+
+const CacheExportOptionsSchema = z.object({
+  output: z.string().trim().min(1)
 });
 
 const CacheKindSchema = z.enum(["verification", "resume"]);
@@ -16,7 +23,9 @@ export function createCacheCommand() {
     .description("Inspect local .handoffkit cache artifacts.")
     .summary("List and show explicit local cache artifacts.")
     .addCommand(createCacheListCommand())
-    .addCommand(createCacheShowCommand());
+    .addCommand(createCacheShowCommand())
+    .addCommand(createCacheExportCommand())
+    .addCommand(createCacheImportCommand());
 }
 
 function createCacheListCommand() {
@@ -55,6 +64,36 @@ function createCacheShowCommand() {
       }
 
       process.stdout.write(renderCacheArtifactMarkdown(artifact, kind, name));
+    });
+}
+
+function createCacheExportCommand() {
+  return new Command("export")
+    .description("Export one local cache artifact as portable JSON.")
+    .argument("<kind>", "cache kind: verification or resume")
+    .argument("[name]", "artifact name, defaults to latest", "latest")
+    .requiredOption("--output <path>", "write exported artifact to a JSON file")
+    .action(async (kindInput: string, name: string, rawOptions) => {
+      const options = CacheExportOptionsSchema.parse(rawOptions);
+      const kind = CacheKindSchema.parse(kindInput);
+      const root = await findGitRoot(process.cwd());
+      const artifact = await readCacheArtifact(root, kind, name);
+
+      await writeFile(options.output, redactText(`${JSON.stringify(artifact, null, 2)}\n`), "utf8");
+      process.stderr.write(`Exported ${kind}/${name} to ${options.output}\n`);
+    });
+}
+
+function createCacheImportCommand() {
+  return new Command("import")
+    .description("Import a portable cache artifact into the current repository cache.")
+    .argument("<path>", "portable cache artifact JSON file")
+    .action(async (path: string) => {
+      const root = await findGitRoot(process.cwd());
+      const artifact = parseCacheArtifactEnvelope(await readFile(path, "utf8"), path);
+      const cache = await importCacheArtifact(root, artifact);
+
+      process.stderr.write(`Imported ${artifact.kind} cache to ${cache.latestPath}\n`);
     });
 }
 

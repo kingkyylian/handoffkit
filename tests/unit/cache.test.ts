@@ -112,6 +112,93 @@ describe("cache artifacts", () => {
     });
   });
 
+  it("exports a local cache artifact as portable JSON", async () => {
+    const root = await makeRepo();
+    const outputPath = join(root, "resume-cache.json");
+    process.chdir(root);
+    await writeCacheArtifact(
+      root,
+      "resume",
+      { goal: "Export cached work", source: { path: "previous.txt", preview: "Done: export cache" } },
+      { now: new Date("2026-05-20T13:00:00.000Z") }
+    );
+    captureOutput();
+
+    await new Command()
+      .exitOverride()
+      .addCommand(createCacheCommand())
+      .parseAsync(["node", "test", "cache", "export", "resume", "latest", "--output", outputPath]);
+    const exported = JSON.parse(await readFile(outputPath, "utf8"));
+
+    expect(exported).toMatchObject({
+      version: 1,
+      kind: "resume",
+      createdAt: "2026-05-20T13:00:00.000Z",
+      data: { goal: "Export cached work" }
+    });
+  });
+
+  it("imports a portable cache artifact into the current repository cache", async () => {
+    const sourceRoot = await makeRepo();
+    const targetRoot = await makeRepo();
+    const importPath = join(sourceRoot, "verification-cache.json");
+    await writeFile(
+      importPath,
+      `${JSON.stringify(
+        {
+          version: 1,
+          kind: "verification",
+          createdAt: "2026-05-20T13:05:00.000Z",
+          data: { commands: [{ name: "test", command: "pnpm test", exitCode: 0, durationMs: 12, output: "ok" }] }
+        },
+        null,
+        2
+      )}\n`,
+      "utf8"
+    );
+    process.chdir(targetRoot);
+    captureOutput();
+
+    await new Command().exitOverride().addCommand(createCacheCommand()).parseAsync(["node", "test", "cache", "import", importPath]);
+
+    const latest = JSON.parse(await readFile(join(targetRoot, ".handoffkit", "verification", "latest.json"), "utf8"));
+    const snapshot = JSON.parse(await readFile(join(targetRoot, ".handoffkit", "verification", "2026-05-20T13-05-00-000Z.json"), "utf8"));
+
+    expect(latest).toMatchObject({
+      version: 1,
+      kind: "verification",
+      createdAt: "2026-05-20T13:05:00.000Z",
+      data: { commands: [{ name: "test", command: "pnpm test", exitCode: 0 }] }
+    });
+    expect(snapshot).toEqual(latest);
+  });
+
+  it("rejects invalid portable cache artifacts without writing cache files", async () => {
+    const root = await makeRepo();
+    const importPath = join(root, "invalid-cache.json");
+    await writeFile(
+      importPath,
+      `${JSON.stringify(
+        {
+          version: 1,
+          kind: "verification",
+          createdAt: "2026-05-20",
+          data: { commands: [] }
+        },
+        null,
+        2
+      )}\n`,
+      "utf8"
+    );
+    process.chdir(root);
+    captureOutput();
+
+    await expect(
+      new Command().exitOverride().addCommand(createCacheCommand()).parseAsync(["node", "test", "cache", "import", importPath])
+    ).rejects.toThrow("Invalid cache artifact");
+    await expect(readdir(join(root, ".handoffkit"))).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("resumes directly from the latest cached resume artifact", async () => {
     const root = await makeRepo();
     process.chdir(root);

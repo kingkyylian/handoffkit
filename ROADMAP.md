@@ -95,11 +95,27 @@ Scan results are bounded and redacted before rendering.
 
 Scanner status also reports common local config files such as `.gitleaks.toml`, `.gitleaksignore`, `.secretlintrc.*`, and `secretlint.config.*`. When a scanner is not installed, the packet includes local installation and config guidance without installing anything automatically.
 
+### Portable Cache Artifacts
+
+Move explicit `.handoffkit` cache artifacts between clones without copying internal cache directories:
+
+```sh
+handoffkit cache export resume latest --output resume-cache.json
+handoffkit cache import resume-cache.json
+```
+
+Expected behavior:
+
+- export a selected resume or verification cache envelope as redacted JSON
+- validate imported cache envelopes before writing them
+- restore imported artifacts as both `latest.json` and a timestamped snapshot
+- keep import/export explicit so normal pack, resume, and verify commands remain local-read-only unless `--cache` or `--output` is used
+
 ## Next Up
 
 - Make `risk` rules richer by mapping changed files to common failure modes.
-- Add transcript parsers for Claude Code, Codex, Cursor, and Gemini exports.
-- Add a stable `.handoffkit` cache format for verification and resume artifacts.
+- Add richer checkpoint automation for durable progress files.
+- Add more transcript parser fixtures for real Claude Code, Codex, Cursor, and Gemini exports.
 
 ## Non-Goals
 

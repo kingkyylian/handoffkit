@@ -40,10 +40,14 @@ handoffkit cache list
 handoffkit cache list --format json
 handoffkit cache show resume latest
 handoffkit cache show verification latest --format json
+handoffkit cache export resume latest --output resume-cache.json
+handoffkit cache import resume-cache.json
 ```
 
 `cache list` shows local artifacts with kind, name, creation time, and path.
 `cache show` prints a single cache envelope.
+`cache export` writes one redacted cache envelope to a portable JSON file.
+`cache import` validates a portable cache envelope and writes it into the current repository cache as both `latest.json` and a timestamped snapshot.
 
 ## Reuse
 

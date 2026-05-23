@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0
+
+- Added `handoffkit cache export <kind> [name] --output <path>` for writing portable redacted cache artifacts.
+- Added `handoffkit cache import <path>` for validating portable cache artifacts and restoring them into the current repository cache.
+- Documented cache import/export workflows for moving resume or verification context between clones.
+
 ## 0.4.0
 
 - Added `handoffkit cache list` and `handoffkit cache show` for inspecting local `.handoffkit` artifacts.
