@@ -3,7 +3,16 @@ import { redactText } from "./redact.js";
 
 const RESUME_PREVIEW_LIMIT = 3000;
 const SECTION_ALIASES = {
-  completed: [/^completed$/i, /^completed work$/i, /^done$/i, /^done this session$/i, /^what changed$/i, /^what i changed$/i, /^implemented$/i],
+  completed: [
+    /^completed$/i,
+    /^completed work$/i,
+    /^work completed$/i,
+    /^done$/i,
+    /^done this session$/i,
+    /^what changed$/i,
+    /^what i changed$/i,
+    /^implemented$/i
+  ],
   remaining: [/^remaining$/i, /^remaining work$/i, /^next steps$/i, /^next action$/i, /^next safest action$/i, /^todo$/i, /^to do$/i],
   failedCommands: [/^failed command$/i, /^failed commands$/i, /^command failed$/i, /^commands failed$/i, /^failure$/i, /^failures$/i, /^error$/i, /^errors$/i],
   openQuestions: [
@@ -20,6 +29,7 @@ const SECTION_ALIASES = {
 } as const;
 
 type ResumeSection = keyof typeof SECTION_ALIASES;
+const JSON_TEXT_KEYS = new Set(["content", "response", "summary", "text"]);
 
 export function createResumeSource(path: string, content: string): ResumeSource {
   const normalized = content.replace(/\r\n/g, "\n").trim();
@@ -45,7 +55,7 @@ export function parseResumeState(content: string): ResumeState {
   let section: ResumeSection | undefined;
   let heading: string | undefined;
 
-  for (const rawLine of content.replace(/\r\n/g, "\n").split("\n")) {
+  for (const rawLine of resumeTranscriptLines(content)) {
     const line = rawLine.trim();
     const headingMatch = line.match(/^#{1,4}\s+(.+)$/);
 
@@ -61,6 +71,13 @@ export function parseResumeState(content: string): ResumeState {
     }
 
     const transcriptLine = stripTranscriptPrefix(line);
+    const bareSection = sectionForHeading(transcriptLine);
+    if (bareSection) {
+      heading = transcriptLine;
+      section = bareSection;
+      continue;
+    }
+
     const labeled = parseLabeledTranscriptLine(transcriptLine);
     if (labeled) {
       heading = labeled.heading;
@@ -136,8 +153,14 @@ function stripTranscriptPrefix(line: string) {
 
   for (let i = 0; i < 4; i += 1) {
     const next = current
+      .replace(/^>\s*/, "")
       .replace(/^\[[^\]\n]{1,60}\]\s*/, "")
-      .replace(/^(?:user|assistant|system|developer|tool|terminal|command|cmd|result|codex|claude|cursor|gemini)(?:\s*\([^)]*\))?\s*[:>]\s*/i, "")
+      .replace(/^<\/?(?:user|assistant|system|developer|tool|terminal|command|cmd|result|codex|claude|cursor|gemini)[^>]*>\s*/i, "")
+      .replace(/^\*\*(?:user|assistant|system|developer|tool|terminal|command|cmd|result|codex|claude|cursor|gemini)\*\*\s*[:>]\s*/i, "")
+      .replace(
+        /^(?:user|assistant|system|developer|tool|terminal|command|cmd|result|codex|claude|cursor|gemini|model|model response)(?:\s*\([^)]*\))?\s*[:>]\s*/i,
+        ""
+      )
       .trim();
 
     if (next === current) {
@@ -162,4 +185,47 @@ function hasResumeState(state: ResumeState) {
     state.openQuestions.length > 0 ||
     state.verification.length > 0
   );
+}
+
+function resumeTranscriptLines(content: string) {
+  return content
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .flatMap((line) => {
+      const jsonText = parseJsonTranscriptText(line.trim());
+      return jsonText.length > 0 ? jsonText.flatMap((text) => text.replace(/\r\n/g, "\n").split("\n")) : [line];
+    });
+}
+
+function parseJsonTranscriptText(line: string): string[] {
+  if (!line || !/^[{[]/.test(line)) {
+    return [];
+  }
+
+  try {
+    return collectJsonTranscriptText(JSON.parse(line));
+  } catch {
+    return [];
+  }
+}
+
+function collectJsonTranscriptText(value: unknown, key?: string): string[] {
+  if (typeof value === "string") {
+    return key && JSON_TEXT_KEYS.has(key) ? [value] : [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectJsonTranscriptText(item));
+  }
+
+  if (!value || typeof value !== "object") {
+    return [];
+  }
+
+  const record = value as Record<string, unknown>;
+  if (typeof record.type === "string" && /^tool_/.test(record.type)) {
+    return [];
+  }
+
+  return Object.entries(record).flatMap(([entryKey, entryValue]) => collectJsonTranscriptText(entryValue, entryKey));
 }

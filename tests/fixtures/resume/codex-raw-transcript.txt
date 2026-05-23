@@ -1,0 +1,14 @@
+<|start|>assistant <|channel|>final
+Done this session
+- Added Codex raw transcript fixture
+
+Failed commands
+- pnpm check failed before fixture update
+<|end|>
+<|start|>assistant <|channel|>final
+Next steps
+1. Document transcript resume imports
+
+Verification
+- CI passed on main
+<|end|>

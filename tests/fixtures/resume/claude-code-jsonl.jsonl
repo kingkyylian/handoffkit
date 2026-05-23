@@ -1,0 +1,2 @@
+{"type":"assistant","message":{"content":[{"type":"text","text":"Done this session\n- Added Claude Code JSONL fixture coverage\n\nVerification\n- pnpm test tests/unit/resume.test.ts passed"}]}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Bash","input":{"command":"pnpm test tests/unit/resume.test.ts"}},{"type":"text","text":"Next steps\n1. Parse JSONL transcript text blocks\n\nOpen questions\n- Should tool_use blocks be ignored?"}]}}

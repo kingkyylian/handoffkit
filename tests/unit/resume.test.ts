@@ -74,4 +74,42 @@ describe("createResumeSource", () => {
     expect(source.state?.openQuestions.map((item) => item.text)).toEqual(["Should copied chat labels be preserved?"]);
     expect(source.state?.nextSafestAction).toBe("Add fixture coverage for Gemini exports");
   });
+
+  it("extracts structured resume state from representative agent export fixtures", () => {
+    const claude = createResumeSource(
+      "claude-code-jsonl.jsonl",
+      readFileSync(new URL("../fixtures/resume/claude-code-jsonl.jsonl", import.meta.url), "utf8")
+    );
+    const codex = createResumeSource(
+      "codex-raw-transcript.txt",
+      readFileSync(new URL("../fixtures/resume/codex-raw-transcript.txt", import.meta.url), "utf8")
+    );
+    const cursor = createResumeSource(
+      "cursor-markdown-export.md",
+      readFileSync(new URL("../fixtures/resume/cursor-markdown-export.md", import.meta.url), "utf8")
+    );
+    const gemini = createResumeSource(
+      "gemini-copied-response.txt",
+      readFileSync(new URL("../fixtures/resume/gemini-copied-response.txt", import.meta.url), "utf8")
+    );
+
+    expect(claude.state?.completed.map((item) => item.text)).toEqual(["Added Claude Code JSONL fixture coverage"]);
+    expect(claude.state?.remaining.map((item) => item.text)).toEqual(["Parse JSONL transcript text blocks"]);
+    expect(claude.state?.verification.map((item) => item.text)).toEqual(["pnpm test tests/unit/resume.test.ts passed"]);
+    expect(claude.state?.openQuestions.map((item) => item.text)).toEqual(["Should tool_use blocks be ignored?"]);
+
+    expect(codex.state?.completed.map((item) => item.text)).toEqual(["Added Codex raw transcript fixture"]);
+    expect(codex.state?.remaining.map((item) => item.text)).toEqual(["Document transcript resume imports"]);
+    expect(codex.state?.failedCommands.map((item) => item.text)).toEqual(["pnpm check failed before fixture update"]);
+    expect(codex.state?.verification.map((item) => item.text)).toEqual(["CI passed on main"]);
+
+    expect(cursor.state?.completed.map((item) => item.text)).toEqual(["Added Cursor markdown transcript fixture"]);
+    expect(cursor.state?.remaining.map((item) => item.text)).toEqual(["Add Gemini export fixture"]);
+    expect(cursor.state?.verification.map((item) => item.text)).toEqual(["pnpm check passed"]);
+
+    expect(gemini.state?.completed.map((item) => item.text)).toEqual(["Added Gemini copied response fixture"]);
+    expect(gemini.state?.remaining.map((item) => item.text)).toEqual(["Keep transcript fixtures small"]);
+    expect(gemini.state?.openQuestions.map((item) => item.text)).toEqual(["Should Gemini model labels map to assistant prefixes?"]);
+    expect(gemini.state?.verification.map((item) => item.text)).toEqual(["npm publish --dry-run passed"]);
+  });
 });

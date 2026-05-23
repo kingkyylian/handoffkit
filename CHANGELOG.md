@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+- Added representative Claude Code JSONL, Codex raw transcript, Cursor Markdown, and Gemini copied response fixtures for `handoffkit resume`.
+- Improved resume parsing for JSON/JSONL transcript text blocks, bare section headings, and common copied chat role wrappers.
+
 ## 0.5.0
 
 - Added `handoffkit cache export <kind> [name] --output <path>` for writing portable redacted cache artifacts.

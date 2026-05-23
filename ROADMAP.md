@@ -82,6 +82,7 @@ Expected behavior:
 - extract prior goal, completed work, remaining tasks, and verification state
 - merge with current git state
 - produce a clean next-agent packet
+- support fixture-backed Claude Code JSONL, Codex raw text, Cursor Markdown, and Gemini copied response transcript shapes
 
 ### Stronger Secret Scanning
 
@@ -115,7 +116,7 @@ Expected behavior:
 
 - Make `risk` rules richer by mapping changed files to common failure modes.
 - Add richer checkpoint automation for durable progress files.
-- Add more transcript parser fixtures for real Claude Code, Codex, Cursor, and Gemini exports.
+- Add more resume rendering examples for cross-agent handoff packets.
 
 ## Non-Goals
 

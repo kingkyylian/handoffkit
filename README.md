@@ -185,9 +185,13 @@ Resume from a previous handoff or transcript:
 
 ```sh
 handoffkit resume previous-handoff.md --goal "Continue from here"
+handoffkit resume claude-code-session.jsonl --goal "Continue from Claude Code"
+handoffkit resume codex-transcript.txt --goal "Continue from Codex"
 handoffkit resume previous-handoff.md --goal "Continue from here" --cache
 handoffkit resume --from-cache latest --goal "Continue cached session"
 ```
+
+`resume` accepts prior handoff Markdown and common copied or exported agent transcript shapes, including Claude Code JSONL text blocks, Codex raw transcript text, Cursor Markdown exports, and Gemini copied responses. It extracts completed work, remaining steps, failed commands, open questions, and verification notes when those labels are present.
 
 Inspect local cache artifacts:
 

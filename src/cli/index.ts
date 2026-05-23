@@ -14,7 +14,7 @@ const program = new Command()
   .description("Create safe local handoff packets for AI-assisted coding sessions.")
   .summary("Create local-first AI coding session handoff packets.")
   .showHelpAfterError("(run with --help for usage)")
-  .version("0.5.0");
+  .version("0.6.0");
 
 program.addCommand(createPackCommand());
 program.addCommand(createVerifyCommand());

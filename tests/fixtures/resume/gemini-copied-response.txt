@@ -1,0 +1,13 @@
+Model response:
+
+Completed work
+- Added Gemini copied response fixture
+
+Open questions and risks
+- Should Gemini model labels map to assistant prefixes?
+
+Next action
+- Keep transcript fixtures small
+
+Validation
+- npm publish --dry-run passed
