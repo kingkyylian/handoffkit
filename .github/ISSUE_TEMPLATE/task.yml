@@ -1,0 +1,36 @@
+name: Task
+description: Open maintenance, tooling, release, documentation, or refactor work.
+title: "[task] "
+labels: ["task", "triage"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why is this work needed?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Which files, modules, workflows, or release steps are affected?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: "- [ ] ..."
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification
+      description: Which commands or checks must pass?
+      placeholder: |
+        rtk pnpm check
+        git diff --check
+    validations:
+      required: true

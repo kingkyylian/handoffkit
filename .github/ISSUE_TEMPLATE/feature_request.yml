@@ -1,7 +1,7 @@
 name: Feature request
 description: Suggest a focused improvement to HandoffKit.
-title: "Feature: "
-labels: ["enhancement"]
+title: "[feature] "
+labels: ["feature", "triage"]
 body:
   - type: textarea
     id: problem
@@ -11,10 +11,37 @@ body:
     validations:
       required: true
   - type: textarea
-    id: proposal
+    id: behavior
     attributes:
-      label: Proposal
-      description: What should HandoffKit do?
+      label: Expected Behavior
+      description: What should HandoffKit do from the user's or system's perspective?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: "- [ ] ..."
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Test / Verification
+      description: Expected typecheck, test, build, CLI smoke, or manual verification.
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk Area
+      options:
+        - Low
+        - CLI output
+        - Git/filesystem writes
+        - Redaction/security
+        - Release/package publishing
+        - Cache/checkpoint artifacts
     validations:
       required: true
   - type: textarea

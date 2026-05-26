@@ -1,0 +1,24 @@
+- name: bug
+  color: d73a4a
+  description: Something is broken or regressed.
+- name: feature
+  color: 0e8a16
+  description: New behavior, CLI API, or workflow.
+- name: quality
+  color: fbca04
+  description: Quality audit, cleanup, or correctness improvement.
+- name: documentation
+  color: 0075ca
+  description: Documentation, examples, README, or release notes.
+- name: release
+  color: 5319e7
+  description: Packaging, publishing, changelog, or release automation.
+- name: roadmap
+  color: 1d76db
+  description: Planned product direction.
+- name: task
+  color: 1d76db
+  description: Maintenance, tooling, refactor, or operational work.
+- name: triage
+  color: cfd3d7
+  description: Needs review, prioritization, or scope clarification.
