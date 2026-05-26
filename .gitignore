@@ -2,6 +2,8 @@ node_modules
 dist
 coverage
 .tmp-tests
+.tmp-checkpoints
+.tmp-release-checkpoints
 .npm-cache
 .handoffkit/
 .DS_Store

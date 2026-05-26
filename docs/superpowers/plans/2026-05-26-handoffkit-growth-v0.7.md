@@ -366,7 +366,7 @@ Expected: commit links to the conversion issue in PR body.
 - Modify: `ROADMAP.md`
 - Modify: `CHANGELOG.md`
 
-- [ ] **Step 1: Define command behavior before coding**
+- [x] **Step 1: Define command behavior before coding**
 
 Command:
 
@@ -387,7 +387,9 @@ Required behavior:
 - Uses `--for generic|codex|claude|cursor` to reuse target report profiles.
 - Uses `--budget <tokens>` with the same positive integer validation as `pack`.
 
-- [ ] **Step 2: Write unit tests for deterministic filename and rendering**
+Result: behavior was implemented as an explicit `checkpoint save` subcommand that writes only the requested checkpoint files and reuses existing collection, verification, risk, and redaction paths.
+
+- [x] **Step 2: Write unit tests for deterministic filename and rendering**
 
 Create `tests/unit/checkpoint.test.ts` with tests covering:
 
@@ -441,7 +443,9 @@ rtk pnpm test tests/unit/checkpoint.test.ts
 
 Expected before implementation: fail because module does not exist.
 
-- [ ] **Step 3: Implement `src/core/checkpoint.ts`**
+Result: RED verified. `rtk pnpm test tests/unit/checkpoint.test.ts` failed because `src/core/checkpoint.js` did not exist. `rtk pnpm test tests/integration/checkpoint-command.test.ts` failed because `src/cli/commands/checkpoint.js` did not exist.
+
+- [x] **Step 3: Implement `src/core/checkpoint.ts`**
 
 Implementation responsibilities:
 
@@ -461,7 +465,9 @@ Rendering sections:
 
 Use `redactText` before writing files.
 
-- [ ] **Step 4: Re-run unit tests**
+Result: `src/core/checkpoint.ts` now exports `checkpointFilename`, `renderCheckpointMarkdown`, and `writeCheckpointFiles`; writes are redacted before timestamped/latest files are saved.
+
+- [x] **Step 4: Re-run unit tests**
 
 Run:
 
@@ -471,7 +477,9 @@ rtk pnpm test tests/unit/checkpoint.test.ts
 
 Expected: pass.
 
-- [ ] **Step 5: Add CLI command**
+Result: `rtk pnpm test tests/unit/checkpoint.test.ts` passed with 3 tests.
+
+- [x] **Step 5: Add CLI command**
 
 Create `src/cli/commands/checkpoint.ts` following the existing `pack.ts` and `resume.ts` patterns.
 
@@ -493,7 +501,9 @@ Action:
 - Write timestamped and latest files.
 - Print both written paths to stderr.
 
-- [ ] **Step 6: Register command**
+Result: `src/cli/commands/checkpoint.ts` adds `checkpoint save` with `--goal`, `--output-dir`, `--for`, `--budget`, and `--verify`.
+
+- [x] **Step 6: Register command**
 
 Modify `src/cli/index.ts`:
 
@@ -504,7 +514,9 @@ program.addCommand(createCheckpointCommand());
 
 Place it after `resume` or before `cache`; keep command ordering logical.
 
-- [ ] **Step 7: Write integration test**
+Result: `src/cli/index.ts` registers `createCheckpointCommand()`.
+
+- [x] **Step 7: Write integration test**
 
 Create `tests/integration/checkpoint-command.test.ts`.
 
@@ -525,7 +537,9 @@ rtk pnpm test tests/integration/checkpoint-command.test.ts
 
 Expected: pass.
 
-- [ ] **Step 8: Document command**
+Result: `tests/integration/checkpoint-command.test.ts` passed; it verifies timestamped file creation, `LATEST.md`, changed file content, resume command text, and redaction.
+
+- [x] **Step 8: Document command**
 
 Update README usage:
 
@@ -548,7 +562,9 @@ Update CHANGELOG:
 - Documented checkpoint-to-resume usage.
 ```
 
-- [ ] **Step 9: Full verification**
+Result: README documents checkpoint-to-resume usage; ROADMAP moves checkpoint save into implemented surface; CHANGELOG adds a `0.7.0` section; `.gitignore` excludes temporary checkpoint smoke directories.
+
+- [x] **Step 9: Full verification**
 
 Run:
 
@@ -562,7 +578,9 @@ git diff --check
 
 Expected: all commands pass; smoke checkpoint files are generated only under `.tmp-checkpoints`.
 
-- [ ] **Step 10: Commit**
+Result: `rtk pnpm check` passed with 14 test files / 44 tests and build; `rtk pnpm pack:dry-run` passed; checkpoint smoke and resume smoke passed; `--verify` checkpoint smoke included typecheck, lint, test, and build results; `git diff --check` passed.
+
+- [x] **Step 10: Commit**
 
 Run:
 
@@ -572,6 +590,8 @@ git commit -m "feat: add checkpoint command"
 ```
 
 Expected: commit links to the v0.7.0 product issue in PR body.
+
+Result: commit created as `feat: add checkpoint command` with `Refs #21`.
 
 ---
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0
+
+- Added `handoffkit checkpoint save` for explicit timestamped progress checkpoints under `docs/checkpoints`.
+- Added `docs/checkpoints/LATEST.md` update support for checkpoint-to-resume workflows.
+- Added checkpoint unit and integration coverage for rendering, redaction, and CLI file writes.
+
 ## 0.6.0
 
 - Added representative Claude Code JSONL, Codex raw transcript, Cursor Markdown, and Gemini copied response fixtures for `handoffkit resume`.

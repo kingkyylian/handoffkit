@@ -2,6 +2,7 @@
 import { Command } from "commander";
 
 import { createCacheCommand } from "./commands/cache.js";
+import { createCheckpointCommand } from "./commands/checkpoint.js";
 import { createPackCommand } from "./commands/pack.js";
 import { createResumeCommand } from "./commands/resume.js";
 import { createRiskCommand } from "./commands/risk.js";
@@ -21,6 +22,7 @@ program.addCommand(createVerifyCommand());
 program.addCommand(createRiskCommand());
 program.addCommand(createScanSecretsCommand());
 program.addCommand(createResumeCommand());
+program.addCommand(createCheckpointCommand());
 program.addCommand(createCacheCommand());
 
 try {

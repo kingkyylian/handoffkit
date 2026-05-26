@@ -193,6 +193,16 @@ handoffkit resume --from-cache latest --goal "Continue cached session"
 
 `resume` accepts prior handoff Markdown and common copied or exported agent transcript shapes, including Claude Code JSONL text blocks, Codex raw transcript text, Cursor Markdown exports, and Gemini copied responses. It extracts completed work, remaining steps, failed commands, open questions, and verification notes when those labels are present.
 
+Save a durable checkpoint and resume from it later:
+
+```sh
+handoffkit checkpoint save --goal "Continue this branch"
+handoffkit checkpoint save --goal "Review after tests" --verify
+handoffkit resume docs/checkpoints/LATEST.md --goal "Continue from checkpoint"
+```
+
+`checkpoint save` writes a timestamped Markdown file plus `docs/checkpoints/LATEST.md` by default. Use `--output-dir <path>` to choose a different checkpoint directory. Checkpoint writes are explicit; `pack`, `resume`, `verify`, and `risk` do not create checkpoint files.
+
 Inspect local cache artifacts:
 
 ```sh
@@ -241,12 +251,14 @@ HandoffKit reads local git and filesystem metadata from the current repository:
 - optional secret scanner availability, local config files, and install guidance for `gitleaks` and `secretlint`
 - bounded, redacted secret scan results when `--scan-secrets` is used
 
+`checkpoint save` uses the same collected facts to write a durable progress file under `docs/checkpoints` or the directory passed to `--output-dir`.
+
 ## What Never Happens
 
 - No LLM API calls.
 - No network requests from the CLI.
 - No git writes, commits, staging, or branch changes.
-- No files are written unless `--output`, explicit `--cache`, or an explicit cache import/export command is provided.
+- No files are written unless `--output`, explicit `--cache`, `checkpoint save`, or an explicit cache import/export command is provided.
 
 ## Development
 

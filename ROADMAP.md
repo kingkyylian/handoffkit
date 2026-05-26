@@ -112,10 +112,26 @@ Expected behavior:
 - restore imported artifacts as both `latest.json` and a timestamped snapshot
 - keep import/export explicit so normal pack, resume, and verify commands remain local-read-only unless `--cache` or `--output` is used
 
+### `handoffkit checkpoint save`
+
+Write durable local progress checkpoints that can be resumed later:
+
+```sh
+handoffkit checkpoint save --goal "Continue this branch"
+handoffkit resume docs/checkpoints/LATEST.md --goal "Continue from checkpoint"
+```
+
+Expected behavior:
+
+- require an explicit checkpoint command before writing files
+- create a timestamped Markdown checkpoint and update `docs/checkpoints/LATEST.md`
+- support `--output-dir` for custom checkpoint directories
+- support `--verify` for including safe verification results
+- keep checkpoint output redacted and local-first
+
 ## Next Up
 
 - Make `risk` rules richer by mapping changed files to common failure modes.
-- Add richer checkpoint automation for durable progress files.
 - Add more resume rendering examples for cross-agent handoff packets.
 
 ## Non-Goals
