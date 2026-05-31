@@ -124,6 +124,8 @@ export interface VerificationResult {
   exitCode: number;
   durationMs: number;
   output: string;
+  skipped?: boolean;
+  timedOut?: boolean;
 }
 
 export interface RiskReport {
@@ -159,6 +161,7 @@ export interface SecretScanResult {
   findings: SecretFinding[];
   error?: string;
   truncated: boolean;
+  timedOut?: boolean;
 }
 
 export interface SecretFinding {

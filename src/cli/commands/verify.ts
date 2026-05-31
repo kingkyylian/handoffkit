@@ -44,7 +44,8 @@ function renderVerificationMarkdown(commands: VerificationResult[]) {
     lines.push("No safe verification scripts detected.");
   } else {
     for (const command of commands) {
-      lines.push(`- \`${command.command}\` exited ${command.exitCode} in ${command.durationMs}ms`);
+      const status = command.skipped ? "skipped" : command.timedOut ? "timed out" : `exited ${command.exitCode}`;
+      lines.push(`- \`${command.command}\` ${status} in ${command.durationMs}ms`);
     }
   }
 

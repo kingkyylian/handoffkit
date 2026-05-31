@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Hardened `--include-diff` so untracked binary files and symlinks are summarized without inlining unsafe previews.
+- Hardened verification runs with destructive-script skipping and per-command timeouts.
+- Hardened local scanner runs with timeout reporting and gitleaks temporary report cleanup.
+- Added release smoke testing to CI and the manual release workflow.
+- Updated roadmap and README guidance for verification, scanner, and diff-preview behavior.
+
 ## 0.7.0
 
 - Added `handoffkit checkpoint save` for explicit timestamped progress checkpoints under `docs/checkpoints`.

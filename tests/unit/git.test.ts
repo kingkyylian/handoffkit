@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
@@ -42,6 +42,31 @@ describe("collectGitInfo", () => {
     expect(info.unstagedDiffSummary).toContain("untracked");
     expect(info.diff?.unstaged).toContain("Untracked file: README.md");
     expect(info.diff?.unstaged).toContain("# Demo");
+  });
+
+  it("does not inline binary untracked file contents", async () => {
+    const root = await makeTempDir();
+    await execa("git", ["init", "--initial-branch=main"], { cwd: root });
+    await writeFile(join(root, "image.bin"), Buffer.from([0, 1, 2, 3, 4, 5]));
+
+    const info = await collectGitInfo(root, { includeDiff: true, includeDiffSummary: true });
+
+    expect(info.diff?.unstaged).toContain("Untracked file: image.bin");
+    expect(info.diff?.unstaged).toContain("Binary or non-text file not previewed.");
+  });
+
+  it("does not follow untracked symlinks when rendering patch previews", async () => {
+    const root = await makeTempDir();
+    const outside = await makeTempDir();
+    await execa("git", ["init", "--initial-branch=main"], { cwd: root });
+    await writeFile(join(outside, "secret.txt"), "outside repo secret\n");
+    await symlink(join(outside, "secret.txt"), join(root, "linked.txt"));
+
+    const info = await collectGitInfo(root, { includeDiff: true, includeDiffSummary: true });
+
+    expect(info.diff?.unstaged).toContain("Untracked file: linked.txt");
+    expect(info.diff?.unstaged).toContain("Symlink target not previewed.");
+    expect(info.diff?.unstaged).not.toContain("outside repo secret");
   });
 
   it("preserves leading dots for modified hidden files", async () => {

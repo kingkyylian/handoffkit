@@ -111,6 +111,8 @@ Run safe verification scripts and include the result:
 handoffkit pack --verify --goal "Fix remaining failures"
 ```
 
+Verification only runs known script names such as `typecheck`, `lint`, `test`, and `build`. Scripts with obvious destructive or publishing commands are skipped, and each verification command has a bounded runtime.
+
 Run optional local secret scanners and include bounded redacted results:
 
 ```sh
@@ -148,6 +150,8 @@ Include full patch text:
 ```sh
 handoffkit pack --goal "Continue implementation" --include-diff
 ```
+
+Untracked previews are limited to regular text files. Binary files, symlinks, generated directories, and oversized previews are bounded or omitted so packets stay paste-safe.
 
 Omit diff summaries and patches:
 

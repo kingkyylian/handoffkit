@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { basename } from "node:path";
+import { lstat, open } from "node:fs/promises";
+import { basename, join } from "node:path";
 
 import { execa } from "execa";
 
@@ -165,19 +165,70 @@ function renderUntrackedSummary(files: string[]) {
 }
 
 async function untrackedPatch(root: string, files: string[]) {
-  const patches = await Promise.all(
-    files.map(async (file) => {
-      const content = await readFile(`${root}/${file}`, "utf8");
-      const trimmedContent =
-        content.length > UNTRACKED_PATCH_CHAR_LIMIT
-          ? `${content.slice(0, UNTRACKED_PATCH_CHAR_LIMIT).trimEnd()}\n[truncated]`
-          : content.trimEnd();
-
-      return [`Untracked file: ${file}`, "```text", trimmedContent, "```"].join("\n");
-    })
-  );
+  const patches = await Promise.all(files.map((file) => untrackedFilePreview(root, file)));
 
   return patches.join("\n\n");
+}
+
+async function untrackedFilePreview(root: string, file: string) {
+  const path = join(root, file);
+
+  try {
+    const stats = await lstat(path);
+
+    if (stats.isSymbolicLink()) {
+      return untrackedPreviewBlock(file, "Symlink target not previewed.");
+    }
+
+    if (!stats.isFile()) {
+      return untrackedPreviewBlock(file, "Non-regular file not previewed.");
+    }
+
+    const handle = await open(path, "r");
+    try {
+      const readLength = Math.min(stats.size, UNTRACKED_PATCH_CHAR_LIMIT + 1);
+      const buffer = Buffer.alloc(readLength);
+      const { bytesRead } = await handle.read(buffer, 0, readLength, 0);
+      const chunk = buffer.subarray(0, bytesRead);
+
+      if (isLikelyBinary(chunk)) {
+        return untrackedPreviewBlock(file, "Binary or non-text file not previewed.");
+      }
+
+      const preview = chunk.subarray(0, UNTRACKED_PATCH_CHAR_LIMIT).toString("utf8").trimEnd();
+      const truncated = stats.size > UNTRACKED_PATCH_CHAR_LIMIT || bytesRead > UNTRACKED_PATCH_CHAR_LIMIT;
+      return untrackedPreviewBlock(file, truncated ? `${preview}\n[truncated]` : preview);
+    } finally {
+      await handle.close();
+    }
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    return untrackedPreviewBlock(file, `Could not preview untracked file${code ? ` (${code})` : ""}.`);
+  }
+}
+
+function untrackedPreviewBlock(file: string, content: string) {
+  return [`Untracked file: ${file}`, "```text", content, "```"].join("\n");
+}
+
+function isLikelyBinary(buffer: Buffer) {
+  if (buffer.includes(0)) {
+    return true;
+  }
+
+  const sample = buffer.subarray(0, Math.min(buffer.length, 8000));
+  if (sample.length === 0) {
+    return false;
+  }
+
+  let controlBytes = 0;
+  for (const byte of sample) {
+    if (byte < 7 || (byte > 14 && byte < 32)) {
+      controlBytes += 1;
+    }
+  }
+
+  return controlBytes / sample.length > 0.3;
 }
 
 function joinSections(sections: string[]) {
