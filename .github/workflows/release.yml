@@ -30,6 +30,9 @@ jobs:
       - name: Verify
         run: pnpm check
 
+      - name: Release smoke
+        run: pnpm smoke:release
+
       - name: Publish
         run: npm publish --provenance --access public
         env:

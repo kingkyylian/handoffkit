@@ -24,6 +24,7 @@ try {
   const pack = await jsonCommand(installDir, ["pack", "--goal", "Release smoke", "--format", "json", "--no-diff"]);
   assertNoGeneratedChangedFiles(pack.repository.changedFiles);
 
+  await jsonCommand(installDir, ["verify", "--format", "json"]);
   await jsonCommand(installDir, ["risk", "--format", "json"]);
   await jsonCommand(installDir, ["scan-secrets", "--format", "json"]);
   await jsonCommand(installDir, ["resume", "README.md", "--goal", "Resume smoke", "--format", "json"]);

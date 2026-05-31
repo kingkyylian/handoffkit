@@ -96,6 +96,15 @@ Scan results are bounded and redacted before rendering.
 
 Scanner status also reports common local config files such as `.gitleaks.toml`, `.gitleaksignore`, `.secretlintrc.*`, and `secretlint.config.*`. When a scanner is not installed, the packet includes local installation and config guidance without installing anything automatically.
 
+### Hardening and Release Safety
+
+Recent releases added tighter handoff safety:
+
+- bounded verification execution with destructive-script skipping
+- safer untracked file previews for `--include-diff`
+- scanner execution timeouts and gitleaks temporary report cleanup
+- release smoke testing for packaged CLI installs
+
 ### Portable Cache Artifacts
 
 Move explicit `.handoffkit` cache artifacts between clones without copying internal cache directories:
@@ -133,6 +142,8 @@ Expected behavior:
 
 - Make `risk` rules richer by mapping changed files to common failure modes.
 - Add more resume rendering examples for cross-agent handoff packets.
+- Add configurable verification policy for teams that want stricter or looser script allowlists.
+- Add cache pruning and retention controls for `.handoffkit` artifacts.
 
 ## Non-Goals
 

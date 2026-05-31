@@ -42,3 +42,6 @@ jobs:
 
       - name: Package dry run
         run: pnpm pack:dry-run
+
+      - name: Release smoke
+        run: pnpm smoke:release

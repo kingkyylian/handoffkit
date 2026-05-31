@@ -28,7 +28,7 @@ Run the packaged install smoke:
 pnpm smoke:release
 ```
 
-The script packs the current package, installs it into a clean temporary git repository, runs `pack`, `risk`, `scan-secrets`, and `resume`, and fails if generated directories such as `node_modules`, `dist`, or `coverage` appear in `changedFiles`.
+The script packs the current package, installs it into a clean temporary git repository, runs `pack`, `verify`, `risk`, `scan-secrets`, and `resume`, and fails if generated directories such as `node_modules`, `dist`, or `coverage` appear in `changedFiles`.
 
 ## Tag and Release
 
@@ -48,6 +48,8 @@ Preferred publish path:
 ```sh
 gh workflow run Release --repo kingkyylian/handoffkit --ref "v${version}"
 ```
+
+The workflow runs `pnpm check` and `pnpm smoke:release` before publishing.
 
 Fallback local publish path when `NPM_TOKEN` is not configured:
 

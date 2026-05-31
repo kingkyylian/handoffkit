@@ -184,13 +184,28 @@ function renderVerification(report: HandoffReport) {
     report.verification.commands.length > 0
       ? report.verification.commands
           .map((command) =>
-            [`- \`${command.command}\` exited ${command.exitCode} in ${command.durationMs}ms`, codeBlock(command.output || "No output.")]
+            [
+              `- \`${command.command}\` ${verificationStatus(command)} in ${command.durationMs}ms`,
+              codeBlock(command.output || "No output.")
+            ]
               .join("\n")
           )
           .join("\n\n")
       : "No safe verification scripts detected.",
     ""
   ];
+}
+
+function verificationStatus(command: NonNullable<HandoffReport["verification"]>["commands"][number]) {
+  if (command.skipped) {
+    return "skipped";
+  }
+
+  if (command.timedOut) {
+    return "timed out";
+  }
+
+  return `exited ${command.exitCode}`;
 }
 
 function renderCache(report: HandoffReport) {
